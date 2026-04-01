@@ -679,7 +679,7 @@ function createEnvironment(lvl) {
   for (let i = 0; i < lvl.cloudCount; i++) {
     const cloud = createCloud();
     cloud.position.set((Math.random() - 0.5) * 50, 12 + Math.random() * 5, (Math.random() - 0.5) * 50);
-    cloud.userData = { speed: 0.2 + Math.random() * 0.3 };
+    cloud.userData = { isCloud: true, speed: 0.2 + Math.random() * 0.3 };
     scene.add(cloud);
   }
 }
@@ -1213,7 +1213,7 @@ function updateCamera(delta) {
 
 function updateClouds(delta) {
   scene.children.forEach(obj => {
-    if (obj.userData && obj.userData.speed) {
+    if (obj.userData && obj.userData.isCloud) {
       obj.position.x += obj.userData.speed * delta;
       if (obj.position.x > 30) obj.position.x = -30;
     }
