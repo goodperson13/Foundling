@@ -364,6 +364,7 @@ function loadLevel(levelIndex) {
   createBabies(lvl);
   createEnvironment(lvl);
   createPredators(lvl);
+  initPredatorPaths();
 
   // UI
   document.getElementById('title-screen').style.opacity = '0';
@@ -973,44 +974,61 @@ function updateBabies(delta) {
 }
 
 // --- PREDATOR AI ---
+// Time-based patrol: position computed from scratch each frame, can never freeze
+function initPredatorPaths() {
+  for (var p = 0; p < predators.length; p++) {
+    var data = predators[p].userData;
+    var patrol = data.patrol;
+    var segs = [];
+    var total = 0;
+    for (var i = 0; i < patrol.length; i++) {
+      var n = patrol[(i + 1) % patrol.length];
+      var dx = n.x - patrol[i].x;
+      var dz = n.z - patrol[i].z;
+      var len = Math.sqrt(dx * dx + dz * dz);
+      segs.push({ sx: patrol[i].x, sz: patrol[i].z, ex: n.x, ez: n.z, len: len, cum: total });
+      total += len;
+    }
+    data._segs = segs;
+    data._totalLen = total;
+    data._dist = 0;
+  }
+}
+
 function updatePredators(delta) {
-  for (let p = 0; p < predators.length; p++) {
+  for (var p = 0; p < predators.length; p++) {
     var pred = predators[p];
     var data = pred.userData;
     data.cooldown = Math.max(0, data.cooldown - delta);
 
-    // Simple patrol — always move toward current waypoint
-    var wp = data.patrol[data.patrolIndex];
-    var dx = wp.x - pred.position.x;
-    var dz = wp.z - pred.position.z;
-    var dist = Math.sqrt(dx * dx + dz * dz);
+    // Advance distance along path
+    data._dist = (data._dist + data.speed * delta) % data._totalLen;
 
-    if (dist < 0.5) {
-      // Reached waypoint, advance to next
-      data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
-    } else {
-      // Move toward waypoint
-      var nx = dx / dist;
-      var nz = dz / dist;
-      var step = data.speed * delta;
-      pred.position.set(
-        pred.position.x + nx * step,
-        pred.position.y,
-        pred.position.z + nz * step
-      );
-      // Face movement direction
-      var angle = Math.atan2(nx, nz);
-      pred.rotation.y = angle;
+    // Find current segment
+    var d = data._dist;
+    var seg = data._segs[0];
+    for (var i = data._segs.length - 1; i >= 0; i--) {
+      if (d >= data._segs[i].cum) { seg = data._segs[i]; break; }
     }
 
-    // Ground height
-    var gy = getGroundHeight(pred.position.x, pred.position.z);
-    pred.position.y += (gy - pred.position.y) * 10 * delta;
+    // Lerp within segment
+    var t = seg.len > 0 ? (d - seg.cum) / seg.len : 0;
+    var nx = seg.sx + (seg.ex - seg.sx) * t;
+    var nz = seg.sz + (seg.ez - seg.sz) * t;
 
-    // Walking animation
+    // Set position directly
+    pred.position.x = nx;
+    pred.position.z = nz;
+    pred.position.y = getGroundHeight(nx, nz);
+
+    // Face direction
+    pred.rotation.y = Math.atan2(seg.ex - seg.sx, seg.ez - seg.sz);
+
+    // Walk animation
     pred.children[0].rotation.z = Math.sin(elapsedTime * 8) * 0.06;
-    var tail = pred.children[pred.children.length - 1];
-    if (tail) tail.rotation.x = Math.sin(elapsedTime * 12) * 0.3;
+    if (pred.children.length > 1) {
+      pred.children[pred.children.length - 1].rotation.x = Math.sin(elapsedTime * 12) * 0.3;
+    }
   }
 }
 
