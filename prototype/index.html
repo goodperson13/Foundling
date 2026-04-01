@@ -40,6 +40,33 @@ canvas { display: block; }
 .level-btn.locked:hover { transform: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 .level-btn .stars-preview { font-size: 14px; display: block; margin-top: 4px; }
 
+/* World Select Screen */
+#world-select-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1a3a2d 0%, #2d5016 50%, #4a7c59 100%); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; overflow-y: auto; padding: 40px 20px; }
+#world-select-screen h2 { font-size: 36px; color: #fff; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
+.worlds-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; }
+.world-card { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; }
+.world-card:hover:not(.locked) { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.6); }
+.world-card.locked { opacity: 0.5; cursor: not-allowed; }
+.world-card.locked:hover { transform: none; }
+.world-icon { font-size: 48px; margin-bottom: 12px; }
+.world-name { font-size: 22px; color: #fff; font-weight: bold; margin-bottom: 8px; }
+.world-description { font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 16px; line-height: 1.4; }
+.world-progress-bar { background: rgba(255,255,255,0.2); height: 6px; border-radius: 3px; overflow: hidden; }
+.world-progress-fill { background: #4a7c59; height: 100%; transition: width 0.3s; }
+.world-progress-text { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px; }
+
+/* Level Select Screen */
+#level-select-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1a3a2d 0%, #2d5016 50%, #4a7c59 100%); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 40px 20px; overflow-y: auto; }
+#level-select-screen h2 { font-size: 32px; color: #fff; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
+.level-select-header { display: flex; align-items: center; gap: 16px; margin-bottom: 30px; }
+.back-btn { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.2s; }
+.back-btn:hover { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.6); }
+.level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; max-width: 600px; }
+.level-select-btn { background: #fff; color: #2d5016; border: none; padding: 16px 12px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.level-select-btn:hover:not(.locked) { transform: scale(1.05); box-shadow: 0 6px 18px rgba(0,0,0,0.3); }
+.level-select-btn.locked { background: rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); cursor: not-allowed; }
+.level-select-btn.locked:hover { transform: none; }
+
 /* Level Complete */
 #level-complete { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
 #level-complete .card { background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; }
@@ -137,6 +164,21 @@ canvas { display: block; }
     <div class="intro-tips" id="intro-tips"></div>
     <button class="intro-start-btn" id="intro-start-btn">Start</button>
   </div>
+</div>
+
+<!-- World Select Screen -->
+<div id="world-select-screen">
+  <h2>Choose Your Realm</h2>
+  <div class="worlds-container" id="worlds-container"></div>
+</div>
+
+<!-- Level Select Screen -->
+<div id="level-select-screen">
+  <div class="level-select-header">
+    <button class="back-btn" id="back-to-worlds-btn">← Back to Worlds</button>
+  </div>
+  <h2 id="level-select-title"></h2>
+  <div class="level-grid" id="level-grid"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -350,6 +392,474 @@ const LEVELS = [
       { text: "Find all 5 babies to complete the ultimate challenge.", type: "goal" },
     ],
   },
+  {
+    id: 6,
+    name: "Dense Forest",
+    subtitle: "Forest intensifies",
+    totalBabies: 5,
+    skyColor: 0x5C6E7D,
+    fogNear: 20, fogFar: 45,
+    groundColor: 0x3d5a1a,
+    treeColors: [0x1A4D1A, 0x2D5C2D, 0x1E5C1E, 0x0D3D0D],
+    babyPositions: [
+      { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
+      { x: 12, z: 8 }, { x: -2, z: -16 }
+    ],
+    treePositions: [
+      { x: -18, z: -18 }, { x: -14, z: -16 }, { x: -10, z: -14 }, { x: -6, z: -16 },
+      { x: -2, z: -18 }, { x: 2, z: -16 }, { x: 6, z: -14 }, { x: 10, z: -16 },
+      { x: 14, z: -18 }, { x: 18, z: -16 }, { x: -20, z: -8 }, { x: -16, z: -10 },
+      { x: -12, z: -12 }, { x: -8, z: -10 }, { x: -4, z: -12 }, { x: 0, z: -10 },
+      { x: 4, z: -12 }, { x: 8, z: -10 }, { x: 12, z: -12 }, { x: 16, z: -10 },
+      { x: -18, z: 0 }, { x: -14, z: 2 }, { x: -10, z: 0 }, { x: -6, z: 2 },
+      { x: -2, z: 0 }, { x: 2, z: 2 }, { x: 6, z: 0 }, { x: 10, z: 2 },
+      { x: 14, z: 0 }, { x: 18, z: 2 }, { x: -12, z: 10 }, { x: -8, z: 12 },
+      { x: 4, z: 12 }, { x: 12, z: 10 }, { x: -16, z: 14 }, { x: -4, z: 16 },
+      { x: 8, z: 14 }, { x: 16, z: 12 }, { x: -20, z: 6 }, { x: 20, z: 8 },
+      { x: -18, z: 16 }, { x: 18, z: -14 }, { x: 0, z: 14 }, { x: -10, z: -6 },
+    ],
+    bushPositions: [
+      { x: -16, z: -12 }, { x: -8, z: -14 }, { x: 0, z: -12 },
+      { x: 8, z: -14 }, { x: -12, z: 0 }, { x: 0, z: 2 },
+      { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
+    ],
+    predators: [
+      { type: 'fox', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: -10, z: -4 }, { x: 10, z: 4 }], speed: 3.2 }
+    ],
+    flowerCount: 30,
+    rockCount: 18,
+    cloudCount: 4,
+    tutorial: false,
+    starTimes: [100, 50],
+    introTips: [
+      { text: "A fox prowls through this denser forest. Stay vigilant!", type: "danger" },
+      { text: "More trees mean more places to hide and more obstacles to navigate.", type: "info" },
+      { text: "Find all 5 babies to complete this level.", type: "goal" },
+    ],
+  },
+  {
+    id: 7,
+    name: "Twilight Grove",
+    subtitle: "Night falls on the forest",
+    totalBabies: 4,
+    skyColor: 0x3d5016,
+    fogNear: 18, fogFar: 38,
+    groundColor: 0x3d5a1a,
+    treeColors: [0x0D3D0D, 0x1A4D1A, 0x0D2D0D, 0x052005],
+    babyPositions: [
+      { x: -10, z: -8 }, { x: 14, z: 5 }, { x: -3, z: -18 }, { x: 8, z: -14 }
+    ],
+    treePositions: [
+      { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 }, { x: -8, z: -4 },
+      { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 }, { x: 6, z: 2 },
+      { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 }, { x: -4, z: 5 },
+      { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 }, { x: 3, z: -8 },
+      { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 }, { x: -12, z: -16 },
+      { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 }, { x: 10, z: -2 },
+      { x: -2, z: -10 }, { x: 17, z: 8 }, { x: -17, z: 10 }, { x: 0, z: 16 },
+      { x: 11, z: -4 }, { x: -6, z: 8 }, { x: 4, z: 0 }, { x: -14, z: 6 },
+      { x: 9, z: 12 }, { x: -11, z: 0 }, { x: 6, z: -14 }, { x: -9, z: 14 },
+      { x: 13, z: -8 },
+    ],
+    bushPositions: [
+      { x: -11, z: -8.5 }, { x: -9.5, z: -7.5 },
+      { x: 13, z: 5.5 }, { x: 15, z: 4.5 },
+      { x: -4, z: -18.5 }, { x: -2, z: -17.5 },
+      { x: 7, z: -14.5 }, { x: 9, z: -13.5 },
+      { x: -6, z: 3 }, { x: 4, z: -5 },
+    ],
+    predators: [
+      { type: 'fox', patrol: [{ x: -6, z: -6 }, { x: 6, z: -6 }, { x: 8, z: 0 }, { x: 6, z: 6 }, { x: -6, z: 6 }, { x: -8, z: 0 }], speed: 3.4 }
+    ],
+    flowerCount: 20,
+    rockCount: 16,
+    cloudCount: 3,
+    tutorial: false,
+    starTimes: [90, 45],
+    introTips: [
+      { text: "The forest grows darker as twilight falls. A cunning fox hunts in the shadows.", type: "danger" },
+      { text: "Navigate carefully through the dimly-lit groves.", type: "info" },
+      { text: "Find all 4 babies to complete this level.", type: "goal" },
+    ],
+  },
+  {
+    id: 8,
+    name: "Forest Depths",
+    subtitle: "The darkest forest",
+    totalBabies: 6,
+    skyColor: 0x2d3d1f,
+    fogNear: 16, fogFar: 35,
+    groundColor: 0x1d4a0a,
+    treeColors: [0x0D2D0D, 0x052005, 0x0D3D0D, 0x000000],
+    babyPositions: [
+      { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
+      { x: 12, z: 8 }, { x: -16, z: 2 }, { x: 4, z: -18 }
+    ],
+    treePositions: [
+      { x: -18, z: -18 }, { x: -14, z: -16 }, { x: -10, z: -14 }, { x: -6, z: -16 },
+      { x: -2, z: -18 }, { x: 2, z: -16 }, { x: 6, z: -14 }, { x: 10, z: -16 },
+      { x: 14, z: -18 }, { x: 18, z: -16 }, { x: -20, z: -8 }, { x: -16, z: -10 },
+      { x: -12, z: -12 }, { x: -8, z: -10 }, { x: -4, z: -12 }, { x: 0, z: -10 },
+      { x: 4, z: -12 }, { x: 8, z: -10 }, { x: 12, z: -12 }, { x: 16, z: -10 },
+      { x: -18, z: 0 }, { x: -14, z: 2 }, { x: -10, z: 0 }, { x: -6, z: 2 },
+      { x: -2, z: 0 }, { x: 2, z: 2 }, { x: 6, z: 0 }, { x: 10, z: 2 },
+      { x: 14, z: 0 }, { x: 18, z: 2 }, { x: -18, z: 10 }, { x: -14, z: 12 },
+      { x: -10, z: 10 }, { x: -6, z: 12 }, { x: 0, z: 10 }, { x: 4, z: 12 },
+      { x: 8, z: 14 }, { x: 12, z: 10 }, { x: -20, z: 6 }, { x: 20, z: 8 },
+      { x: -18, z: 16 }, { x: 18, z: -14 }, { x: 0, z: 14 }, { x: -10, z: -6 },
+      { x: 16, z: 6 }, { x: -12, z: 14 }, { x: 6, z: -18 }, { x: -8, z: -18 },
+      { x: 10, z: 16 }, { x: -4, z: 16 },
+    ],
+    bushPositions: [
+      { x: -16, z: -12 }, { x: -8, z: -14 }, { x: 0, z: -12 },
+      { x: 8, z: -14 }, { x: -12, z: 0 }, { x: 0, z: 2 },
+      { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
+      { x: 10, z: 6 }, { x: -14, z: 10 },
+    ],
+    predators: [
+      { type: 'fox', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: -10, z: -4 }, { x: 10, z: 4 }, { x: 0, z: 10 }, { x: 0, z: -10 }], speed: 3.5 }
+    ],
+    flowerCount: 15,
+    rockCount: 24,
+    cloudCount: 2,
+    tutorial: false,
+    starTimes: [110, 55],
+    introTips: [
+      { text: "You've reached the deepest, darkest part of the forest. A fox hunts relentlessly.", type: "danger" },
+      { text: "Maximum trees, minimal light, and nowhere to hide for long.", type: "danger" },
+      { text: "Find all 6 babies to escape this nightmare.", type: "goal" },
+    ],
+  },
+  {
+    id: 9,
+    name: "Foothill Path",
+    subtitle: "The mountains await",
+    totalBabies: 4,
+    skyColor: 0x7B9CAD,
+    fogNear: 25, fogFar: 50,
+    groundColor: 0x6B7D5C,
+    treeColors: [0x2D7A2D, 0x3A8B3A, 0x247424, 0x1F6B1F],
+    babyPositions: [
+      { x: -10, z: -8 }, { x: 14, z: 5 }, { x: -3, z: -18 }, { x: 8, z: -14 }
+    ],
+    treePositions: [
+      { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 }, { x: -8, z: -4 },
+      { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 }, { x: 6, z: 2 },
+      { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 }, { x: -4, z: 5 },
+      { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 }, { x: 3, z: -8 },
+      { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 }, { x: -12, z: -16 },
+    ],
+    bushPositions: [
+      { x: -11, z: -8.5 }, { x: -9.5, z: -7.5 },
+      { x: 13, z: 5.5 }, { x: 15, z: 4.5 },
+      { x: -4, z: -18.5 }, { x: -2, z: -17.5 },
+      { x: 7, z: -14.5 }, { x: 9, z: -13.5 },
+    ],
+    predators: [
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 }
+    ],
+    flowerCount: 25,
+    rockCount: 18,
+    cloudCount: 6,
+    tutorial: false,
+    starTimes: [100, 50],
+    introTips: [
+      { text: "Welcome to the Mountain Realm! An eagle patrols the foothill paths.", type: "danger" },
+      { text: "The terrain is higher, the air crisper, and predators fiercer.", type: "info" },
+      { text: "Find all 4 babies to advance further up the mountain.", type: "goal" },
+    ],
+  },
+  {
+    id: 10,
+    name: "Ridge Walk",
+    subtitle: "Narrow mountain paths",
+    totalBabies: 5,
+    skyColor: 0x9DB8D6,
+    fogNear: 22, fogFar: 48,
+    groundColor: 0x7A8C6E,
+    treeColors: [0x2D7A2D, 0x3A8B3A, 0x247424, 0x1F6B1F],
+    babyPositions: [
+      { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
+      { x: 12, z: 8 }, { x: -2, z: -16 }
+    ],
+    treePositions: [
+      { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 }, { x: -8, z: -4 },
+      { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 }, { x: 6, z: 2 },
+      { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 }, { x: -4, z: 5 },
+      { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 }, { x: 3, z: -8 },
+      { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 }, { x: -12, z: -16 },
+      { x: -18, z: -2 }, { x: 18, z: -10 },
+    ],
+    bushPositions: [
+      { x: -11, z: -8.5 }, { x: -9.5, z: -7.5 },
+      { x: 13, z: 5.5 }, { x: 15, z: 4.5 },
+      { x: -4, z: -18.5 }, { x: -2, z: -17.5 },
+      { x: 7, z: -14.5 }, { x: 9, z: -13.5 },
+    ],
+    predators: [
+      { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 4.0 }
+    ],
+    flowerCount: 20,
+    rockCount: 20,
+    cloudCount: 7,
+    tutorial: false,
+    starTimes: [110, 55],
+    introTips: [
+      { text: "A wolf guards the mountain ridge. Watch for its territorial patrols.", type: "danger" },
+      { text: "The paths are narrow - one wrong step and you're in danger.", type: "danger" },
+      { text: "Find all 5 babies to reach the alpine heights.", type: "goal" },
+    ],
+  },
+  {
+    id: 11,
+    name: "Alpine Expanse",
+    subtitle: "High altitude challenge",
+    totalBabies: 5,
+    skyColor: 0x8FACCD,
+    fogNear: 20, fogFar: 45,
+    groundColor: 0x6B8E7F,
+    treeColors: [0x2D7A2D, 0x3A8B3A, 0x247424, 0x1F6B1F],
+    babyPositions: [
+      { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
+      { x: 12, z: 8 }, { x: 0, z: 14 }
+    ],
+    treePositions: [
+      { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 }, { x: -8, z: -4 },
+      { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 }, { x: 6, z: 2 },
+      { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 }, { x: -4, z: 5 },
+      { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 }, { x: 3, z: -8 },
+      { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 }, { x: -12, z: -16 },
+      { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 },
+    ],
+    bushPositions: [
+      { x: -11, z: -8.5 }, { x: -9.5, z: -7.5 },
+      { x: 13, z: 5.5 }, { x: 15, z: 4.5 },
+      { x: -4, z: -18.5 }, { x: -2, z: -17.5 },
+    ],
+    predators: [
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
+      { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 3.8 }
+    ],
+    flowerCount: 18,
+    rockCount: 22,
+    cloudCount: 8,
+    tutorial: false,
+    starTimes: [130, 65],
+    introTips: [
+      { text: "An EAGLE circles overhead and a WOLF hunts on the ground.", type: "danger" },
+      { text: "The alpine expanse offers little cover but excellent visibility of threats.", type: "info" },
+      { text: "Find all 5 babies to approach the summit.", type: "goal" },
+    ],
+  },
+  {
+    id: 12,
+    name: "Summit Challenge",
+    subtitle: "The peak awaits",
+    totalBabies: 6,
+    skyColor: 0x87CEEB,
+    fogNear: 25, fogFar: 55,
+    groundColor: 0x4D9932,
+    treeColors: [0x2D7A2D, 0x3A8B3A, 0x247424, 0x1F6B1F],
+    babyPositions: [
+      { x: 0, z: 2 }, { x: 3, z: 1 }, { x: -3, z: 0 }, { x: 2, z: -2 }, { x: -2, z: 3 }, { x: 0, z: -4 }
+    ],
+    treePositions: [
+      { x: -16, z: -16 }, { x: 16, z: -16 }, { x: -16, z: 16 }, { x: 16, z: 16 },
+      { x: -14, z: -12 }, { x: 14, z: -12 }, { x: -14, z: 12 }, { x: 14, z: 12 },
+      { x: -12, z: -14 }, { x: 12, z: -14 }, { x: -12, z: 14 }, { x: 12, z: 14 },
+      { x: -10, z: -16 }, { x: 10, z: -16 }, { x: -10, z: 16 }, { x: 10, z: 16 },
+      { x: -18, z: -8 }, { x: 18, z: -8 }, { x: -18, z: 8 }, { x: 18, z: 8 },
+      { x: -8, z: 0 }, { x: 8, z: 0 }, { x: 0, z: -8 }, { x: 0, z: 8 },
+    ],
+    bushPositions: [
+      { x: -14, z: -10 }, { x: 14, z: -10 }, { x: -14, z: 10 }, { x: 14, z: 10 },
+      { x: -10, z: -14 }, { x: 10, z: -14 }, { x: -10, z: 14 }, { x: 10, z: 14 },
+    ],
+    predators: [
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
+      { type: 'wolf', patrol: [{ x: 0, z: 8 }, { x: 8, z: 0 }, { x: 0, z: -8 }, { x: -8, z: 0 }], speed: 3.9 }
+    ],
+    flowerCount: 30,
+    rockCount: 20,
+    cloudCount: 8,
+    tutorial: false,
+    starTimes: [140, 70],
+    introTips: [
+      { text: "You've reached the summit challenge! Eagle and wolf protect the peak.", type: "danger" },
+      { text: "Both predators are at their strongest here. This is your greatest mountain test.", type: "danger" },
+      { text: "Find all 6 babies and claim victory at the summit!", type: "goal" },
+    ],
+  },
+  {
+    id: 13,
+    name: "Coyote Canyon",
+    subtitle: "The wild untamed",
+    totalBabies: 5,
+    skyColor: 0x4D5C6F,
+    fogNear: 19, fogFar: 42,
+    groundColor: 0x2d5a1a,
+    treeColors: [0x1A4D1A, 0x2D5C2D, 0x1E5C1E, 0x0D3D0D],
+    babyPositions: [
+      { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
+      { x: 12, z: 8 }, { x: 0, z: 14 }
+    ],
+    treePositions: [
+      { x: -18, z: -18 }, { x: -14, z: -16 }, { x: -10, z: -14 }, { x: -6, z: -16 },
+      { x: -2, z: -18 }, { x: 2, z: -16 }, { x: 6, z: -14 }, { x: 10, z: -16 },
+      { x: 14, z: -18 }, { x: 18, z: -16 }, { x: -20, z: -8 }, { x: -16, z: -10 },
+      { x: -12, z: -12 }, { x: -8, z: -10 }, { x: -4, z: -12 }, { x: 0, z: -10 },
+      { x: 4, z: -12 }, { x: 8, z: -10 }, { x: 12, z: -12 }, { x: 16, z: -10 },
+      { x: -18, z: 0 }, { x: -14, z: 2 }, { x: -10, z: 0 }, { x: -6, z: 2 },
+      { x: -2, z: 0 }, { x: 2, z: 2 }, { x: 6, z: 0 }, { x: 10, z: 2 },
+    ],
+    bushPositions: [
+      { x: -16, z: -12 }, { x: -8, z: -14 }, { x: 0, z: -12 },
+      { x: 8, z: -14 }, { x: -12, z: 0 }, { x: 0, z: 2 },
+      { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
+    ],
+    predators: [
+      { type: 'coyote', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: -10, z: -4 }, { x: 10, z: 4 }, { x: 0, z: 10 }, { x: 0, z: -10 }], speed: 3.5 }
+    ],
+    flowerCount: 25,
+    rockCount: 20,
+    cloudCount: 4,
+    tutorial: false,
+    starTimes: [120, 60],
+    introTips: [
+      { text: "Welcome to the Wilderness Realm! A coyote hunts through the canyon.", type: "danger" },
+      { text: "The wilderness is harsher and more dangerous than before.", type: "danger" },
+      { text: "Find all 5 babies to survive the coyote's territory.", type: "goal" },
+    ],
+  },
+  {
+    id: 14,
+    name: "Hunted Territory",
+    subtitle: "Three predators prowl",
+    totalBabies: 7,
+    skyColor: 0x3D4A5C,
+    fogNear: 17, fogFar: 38,
+    groundColor: 0x1d4a0a,
+    treeColors: [0x0D3D0D, 0x052005, 0x0D2D0D, 0x000000],
+    babyPositions: [
+      { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
+      { x: 12, z: 8 }, { x: -16, z: 2 }, { x: 4, z: -18 }, { x: 2, z: 12 }
+    ],
+    treePositions: [
+      { x: -18, z: -18 }, { x: -14, z: -16 }, { x: -10, z: -14 }, { x: -6, z: -16 },
+      { x: -2, z: -18 }, { x: 2, z: -16 }, { x: 6, z: -14 }, { x: 10, z: -16 },
+      { x: 14, z: -18 }, { x: 18, z: -16 }, { x: -20, z: -8 }, { x: -16, z: -10 },
+      { x: -12, z: -12 }, { x: -8, z: -10 }, { x: -4, z: -12 }, { x: 0, z: -10 },
+      { x: 4, z: -12 }, { x: 8, z: -10 }, { x: 12, z: -12 }, { x: 16, z: -10 },
+      { x: -18, z: 0 }, { x: -14, z: 2 }, { x: -10, z: 0 }, { x: -6, z: 2 },
+      { x: -2, z: 0 }, { x: 2, z: 2 }, { x: 6, z: 0 }, { x: 10, z: 2 },
+      { x: 14, z: 0 }, { x: 18, z: 2 }, { x: -18, z: 10 }, { x: -14, z: 12 },
+      { x: -10, z: 10 }, { x: -6, z: 12 }, { x: 0, z: 10 }, { x: 4, z: 12 },
+    ],
+    bushPositions: [
+      { x: -16, z: -12 }, { x: -8, z: -14 }, { x: 0, z: -12 },
+      { x: 8, z: -14 }, { x: -12, z: 0 }, { x: 0, z: 2 },
+      { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
+    ],
+    predators: [
+      { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 3.8 },
+      { type: 'fox', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }], speed: 3.0 },
+      { type: 'coyote', patrol: [{ x: 6, z: 6 }, { x: -6, z: -6 }, { x: 6, z: -6 }, { x: -6, z: 6 }], speed: 3.2 }
+    ],
+    flowerCount: 20,
+    rockCount: 25,
+    cloudCount: 3,
+    tutorial: false,
+    starTimes: [160, 80],
+    introTips: [
+      { text: "WOLF, FOX, and COYOTE all hunt this territory. You're surrounded!", type: "danger" },
+      { text: "Three predators from three different realms. Maximum danger.", type: "danger" },
+      { text: "Find all 7 babies and escape this hunted territory alive.", type: "goal" },
+    ],
+  },
+  {
+    id: 15,
+    name: "Ultimate Sanctuary",
+    subtitle: "The final challenge",
+    totalBabies: 8,
+    skyColor: 0x2D3D4A,
+    fogNear: 15, fogFar: 33,
+    groundColor: 0x0d3d0d,
+    treeColors: [0x000000, 0x0D2D0D, 0x0D3D0D, 0x052005],
+    babyPositions: [
+      { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
+      { x: 12, z: 8 }, { x: -16, z: 2 }, { x: 4, z: -18 }, { x: 2, z: 12 }, { x: -8, z: -6 }
+    ],
+    treePositions: [
+      { x: -18, z: -18 }, { x: -14, z: -16 }, { x: -10, z: -14 }, { x: -6, z: -16 },
+      { x: -2, z: -18 }, { x: 2, z: -16 }, { x: 6, z: -14 }, { x: 10, z: -16 },
+      { x: 14, z: -18 }, { x: 18, z: -16 }, { x: -20, z: -8 }, { x: -16, z: -10 },
+      { x: -12, z: -12 }, { x: -8, z: -10 }, { x: -4, z: -12 }, { x: 0, z: -10 },
+      { x: 4, z: -12 }, { x: 8, z: -10 }, { x: 12, z: -12 }, { x: 16, z: -10 },
+      { x: -18, z: 0 }, { x: -14, z: 2 }, { x: -10, z: 0 }, { x: -6, z: 2 },
+      { x: -2, z: 0 }, { x: 2, z: 2 }, { x: 6, z: 0 }, { x: 10, z: 2 },
+      { x: 14, z: 0 }, { x: 18, z: 2 }, { x: -18, z: 10 }, { x: -14, z: 12 },
+      { x: -10, z: 10 }, { x: -6, z: 12 }, { x: 0, z: 10 }, { x: 4, z: 12 },
+      { x: 8, z: 14 }, { x: 12, z: 10 }, { x: -20, z: 6 }, { x: 20, z: 8 },
+      { x: -18, z: 16 }, { x: 18, z: -14 }, { x: 0, z: 14 }, { x: -10, z: -6 },
+    ],
+    bushPositions: [
+      { x: -16, z: -12 }, { x: -8, z: -14 }, { x: 0, z: -12 },
+      { x: 8, z: -14 }, { x: -12, z: 0 }, { x: 0, z: 2 },
+      { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
+    ],
+    predators: [
+      { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }, { x: 0, z: -15 }, { x: 15, z: 0 }, { x: 0, z: 15 }, { x: -15, z: 0 }], speed: 3.9 },
+      { type: 'fox', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: 0, z: 0 }, { x: 6, z: -4 }, { x: -6, z: 4 }, { x: 0, z: 8 }], speed: 3.2 },
+      { type: 'coyote', patrol: [{ x: 6, z: 6 }, { x: -6, z: -6 }, { x: 6, z: -6 }, { x: -6, z: 6 }, { x: 0, z: -10 }, { x: 10, z: 0 }, { x: 0, z: 10 }, { x: -10, z: 0 }], speed: 3.3 }
+    ],
+    flowerCount: 10,
+    rockCount: 30,
+    cloudCount: 2,
+    tutorial: false,
+    starTimes: [180, 90],
+    introTips: [
+      { text: "This is it. The ultimate challenge. All three predators at full strength.", type: "danger" },
+      { text: "WOLF, FOX, and COYOTE hunt these darkest depths with maximum ferocity.", type: "danger" },
+      { text: "Find all 8 babies and prove you are the ultimate parent. Good luck!", type: "goal" },
+    ],
+  },
+];
+
+// --- WORLDS ARRAY ---
+const WORLDS = [
+  {
+    id: 1,
+    name: "Forest Realm",
+    displayName: "The Forest Realm",
+    description: "Master the lush forests and learn to evade the cunning fox.",
+    icon: "🌲",
+    backgroundColor: "#2d5016",
+    levelIds: [1, 2, 6, 7, 8],
+    unlockedByDefault: true,
+    requiredPreviousWorld: null,
+  },
+  {
+    id: 2,
+    name: "Mountain Realm",
+    displayName: "The Mountain Realm",
+    description: "Navigate the peaks where eagles soar and wolves prowl.",
+    icon: "⛰️",
+    backgroundColor: "#4a6b8a",
+    levelIds: [4, 9, 10, 11, 12],
+    unlockedByDefault: false,
+    requiredPreviousWorld: 1,
+  },
+  {
+    id: 3,
+    name: "Wilderness Realm",
+    displayName: "The Wild Wilderness",
+    description: "Survive the ultimate challenge with three predators.",
+    icon: "🦁",
+    backgroundColor: "#3d4a5c",
+    levelIds: [3, 13, 5, 14, 15],
+    unlockedByDefault: false,
+    requiredPreviousWorld: 2,
+  },
 ];
 
 // --- GLOBALS ---
@@ -382,8 +892,26 @@ const PREDATOR_CHASE_SPEED_MULT = 1.5;
 const SCATTER_STUN_TIME = 0.6;
 
 // Save data
-let saveData = { unlockedLevel: 1, stars: {} };
-try { const s = localStorage.getItem('foundling_save'); if (s) saveData = JSON.parse(s); } catch(e) {}
+let saveData = {
+  unlockedLevel: 1,
+  unlockedWorlds: [1],
+  currentWorld: 1,
+  currentLevel: 1,
+  stars: {}
+};
+try {
+  const s = localStorage.getItem('foundling_save');
+  if (s) {
+    const loaded = JSON.parse(s);
+    saveData = {
+      unlockedLevel: loaded.unlockedLevel || 1,
+      unlockedWorlds: loaded.unlockedWorlds || [1],
+      currentWorld: loaded.currentWorld || 1,
+      currentLevel: loaded.currentLevel || 1,
+      stars: loaded.stars || {}
+    };
+  }
+} catch(e) {}
 function save() { try { localStorage.setItem('foundling_save', JSON.stringify(saveData)); } catch(e) {} }
 
 // Tutorial
@@ -1281,6 +1809,134 @@ function detectMobile() {
   document.getElementById('mobile-controls').style.display = isMobile ? 'block' : 'none';
 }
 
+// --- WORLD PROGRESSION HELPERS ---
+function getLevelsForWorld(worldId) {
+  const world = WORLDS.find(w => w.id === worldId);
+  if (!world) return [];
+  return world.levelIds.map(id => LEVELS.find(lvl => lvl.id === id)).filter(lvl => lvl);
+}
+
+function isWorldUnlocked(worldId) {
+  const world = WORLDS.find(w => w.id === worldId);
+  if (!world) return false;
+  if (world.unlockedByDefault) return true;
+  const reqWorld = WORLDS.find(w => w.id === world.requiredPreviousWorld);
+  if (!reqWorld) return true;
+  return isWorldComplete(reqWorld.id);
+}
+
+function isWorldComplete(worldId) {
+  const world = WORLDS.find(w => w.id === worldId);
+  if (!world) return false;
+  return world.levelIds.every(levelId => saveData.stars[levelId]);
+}
+
+function getCurrentWorldIdForLevel(levelId) {
+  for (let world of WORLDS) {
+    if (world.levelIds.includes(levelId)) return world.id;
+  }
+  return 1;
+}
+
+// --- UI BUILDERS ---
+function buildWorldButtons() {
+  const container = document.getElementById('worlds-container');
+  container.innerHTML = '';
+  WORLDS.forEach(world => {
+    const card = document.createElement('div');
+    card.className = 'world-card';
+    if (!isWorldUnlocked(world.id)) card.classList.add('locked');
+
+    const levelsInWorld = getLevelsForWorld(world.id);
+    const completedLevels = levelsInWorld.filter(lvl => saveData.stars[lvl.id]).length;
+    const progress = levelsInWorld.length > 0 ? (completedLevels / levelsInWorld.length) * 100 : 0;
+
+    card.innerHTML = `
+      <div class="world-icon">${world.icon}</div>
+      <div class="world-name">${world.displayName}</div>
+      <div class="world-description">${world.description}</div>
+      <div class="world-progress-bar">
+        <div class="world-progress-fill" style="width: ${progress}%"></div>
+      </div>
+      <div class="world-progress-text">${completedLevels}/${levelsInWorld.length} levels</div>
+    `;
+
+    if (isWorldUnlocked(world.id)) {
+      card.addEventListener('click', () => showLevelSelect(world.id));
+    }
+
+    container.appendChild(card);
+  });
+}
+
+function buildLevelGrid(worldId) {
+  const world = WORLDS.find(w => w.id === worldId);
+  if (!world) return;
+
+  const container = document.getElementById('level-grid');
+  container.innerHTML = '';
+
+  const levelsInWorld = getLevelsForWorld(worldId);
+  levelsInWorld.forEach(lvl => {
+    const btn = document.createElement('button');
+    btn.className = 'level-select-btn';
+
+    const starsText = saveData.stars[lvl.id] ? '⭐'.repeat(saveData.stars[lvl.id]) + '☆'.repeat(3 - saveData.stars[lvl.id]) : '☆☆☆';
+    btn.innerHTML = `Level ${lvl.id}<br><span style="font-size:12px">${starsText}</span>`;
+
+    btn.addEventListener('click', () => {
+      document.getElementById('level-select-screen').style.display = 'none';
+      loadLevel(LEVELS.findIndex(l => l.id === lvl.id));
+    });
+
+    container.appendChild(btn);
+  });
+}
+
+function buildLevelButtons() {
+  const container = document.getElementById('level-buttons');
+  container.innerHTML = '';
+  LEVELS.forEach((lvl, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (i + 1 > saveData.unlockedLevel ? ' locked' : '');
+    const starsText = saveData.stars[lvl.id] ? '⭐'.repeat(saveData.stars[lvl.id]) + '☆'.repeat(3 - saveData.stars[lvl.id]) : '';
+    btn.innerHTML = `Level ${lvl.id} — ${lvl.name}` + (starsText ? `<span class="stars-preview">${starsText}</span>` : '');
+    if (i + 1 <= saveData.unlockedLevel) {
+      btn.addEventListener('click', () => loadLevel(i));
+    }
+    container.appendChild(btn);
+  });
+}
+
+// --- SCREEN NAVIGATION ---
+function showWorldSelect() {
+  gameStarted = false;
+  levelComplete = false;
+  document.getElementById('level-complete').style.display = 'none';
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('level-name-hud').style.display = 'none';
+  document.getElementById('tutorial-overlay').style.display = 'none';
+  document.getElementById('level-intro').style.display = 'none';
+  document.getElementById('level-select-screen').style.display = 'none';
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('world-select-screen').style.display = 'flex';
+  buildWorldButtons();
+}
+
+function showLevelSelect(worldId) {
+  const world = WORLDS.find(w => w.id === worldId);
+  if (!world) return;
+
+  document.getElementById('world-select-screen').style.display = 'none';
+  document.getElementById('level-select-title').textContent = world.displayName;
+  document.getElementById('level-select-screen').style.display = 'flex';
+  buildLevelGrid(worldId);
+}
+
+function selectWorld(worldId) {
+  showLevelSelect(worldId);
+}
+
 // --- GAME LOOP ---
 function animate() {
   requestAnimationFrame(animate);
@@ -1742,11 +2398,29 @@ function winLevel() {
   if (currentLevel + 2 > saveData.unlockedLevel && currentLevel + 1 < LEVELS.length) {
     saveData.unlockedLevel = currentLevel + 2;
   }
+
+  // Check if world is complete and unlock next world
+  const worldId = getCurrentWorldIdForLevel(lvl.id);
+  if (isWorldComplete(worldId)) {
+    const nextWorld = WORLDS.find(w => w.requiredPreviousWorld === worldId);
+    if (nextWorld && !saveData.unlockedWorlds.includes(nextWorld.id)) {
+      saveData.unlockedWorlds.push(nextWorld.id);
+    }
+  }
+
   save();
+
+  // Determine if there's a next level
+  const currentWorldId = getCurrentWorldIdForLevel(lvl.id);
+  const world = WORLDS.find(w => w.id === currentWorldId);
+  const levelsInWorld = getLevelsForWorld(currentWorldId);
+  const currentLevelIndexInWorld = levelsInWorld.findIndex(l => l.id === lvl.id);
+  const hasNextLevel = currentLevelIndexInWorld + 1 < levelsInWorld.length;
 
   // Show/hide next level button
   const nextBtn = document.getElementById('next-level-btn');
-  nextBtn.style.display = (currentLevel + 1 < LEVELS.length) ? 'inline-block' : 'none';
+  nextBtn.style.display = hasNextLevel ? 'inline-block' : 'none';
+  nextBtn.textContent = hasNextLevel ? 'Next Level' : 'Back to Worlds';
 
   document.getElementById('level-complete').style.display = 'flex';
 }
@@ -1814,22 +2488,37 @@ function endTutorial() {
 
 // --- NAVIGATION ---
 function goToMenu() {
-  gameStarted = false;
-  levelComplete = false;
-  document.getElementById('level-complete').style.display = 'none';
-  document.getElementById('hud').style.display = 'none';
-  document.getElementById('level-name-hud').style.display = 'none';
-  document.getElementById('tutorial-overlay').style.display = 'none';
-  document.getElementById('level-intro').style.display = 'none';
-  document.getElementById('title-screen').style.display = 'flex';
-  document.getElementById('title-screen').style.opacity = '1';
-  buildLevelButtons();
+  showWorldSelect();
 }
 
 function nextLevel() {
-  if (currentLevel + 1 < LEVELS.length) {
+  const currentLevelObj = LEVELS[currentLevel];
+  const currentWorldId = getCurrentWorldIdForLevel(currentLevelObj.id);
+  const world = WORLDS.find(w => w.id === currentWorldId);
+
+  if (!world) return;
+
+  const levelsInWorld = getLevelsForWorld(currentWorldId);
+  const currentLevelIndexInWorld = levelsInWorld.findIndex(l => l.id === currentLevelObj.id);
+
+  // Check if there are more levels in this world
+  if (currentLevelIndexInWorld + 1 < levelsInWorld.length) {
+    const nextLevelObj = levelsInWorld[currentLevelIndexInWorld + 1];
+    const nextLevelIndex = LEVELS.findIndex(l => l.id === nextLevelObj.id);
     document.getElementById('level-complete').style.display = 'none';
-    loadLevel(currentLevel + 1);
+    loadLevel(nextLevelIndex);
+  } else {
+    // Check if world is complete and unlock next world
+    if (isWorldComplete(currentWorldId)) {
+      const nextWorld = WORLDS.find(w => w.requiredPreviousWorld === currentWorldId);
+      if (nextWorld && !saveData.unlockedWorlds.includes(nextWorld.id)) {
+        saveData.unlockedWorlds.push(nextWorld.id);
+        save();
+      }
+    }
+    // Go back to world select
+    document.getElementById('level-complete').style.display = 'none';
+    showWorldSelect();
   }
 }
 
@@ -1847,6 +2536,7 @@ document.getElementById('menu-btn').addEventListener('click', goToMenu);
 document.getElementById('next-level-btn').addEventListener('click', nextLevel);
 document.getElementById('tutorial-next-btn').addEventListener('click', advanceTutorial);
 document.getElementById('intro-start-btn').addEventListener('click', dismissLevelIntro);
+document.getElementById('back-to-worlds-btn').addEventListener('click', showWorldSelect);
 
 // Start
 init();
