@@ -944,20 +944,28 @@ function updatePredators(delta) {
     const dz = target.z - pred.position.z;
     const dist = Math.sqrt(dx * dx + dz * dz);
 
-    if (dist < 0.5) {
+    // Use speed-based threshold so fox doesn't overshoot at high speed
+    const arriveThreshold = data.speed * delta * 2 + 0.3;
+
+    if (dist < arriveThreshold) {
+      // Snap to target and advance to next patrol point
+      pred.position.x = target.x;
+      pred.position.z = target.z;
       data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
     } else {
       const nx = dx / dist;
       const nz = dz / dist;
-      pred.position.x += nx * data.speed * delta;
-      pred.position.z += nz * data.speed * delta;
+      // Don't move further than remaining distance
+      const moveAmt = Math.min(data.speed * delta, dist);
+      pred.position.x += nx * moveAmt;
+      pred.position.z += nz * moveAmt;
 
-      // Face direction
+      // Face direction smoothly
       const angle = Math.atan2(nx, nz);
       let angleDiff = angle - pred.rotation.y;
       while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
       while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-      pred.rotation.y += angleDiff * 5 * delta;
+      pred.rotation.y += angleDiff * 6 * delta;
     }
 
     // Ground height
@@ -1002,33 +1010,72 @@ function scatterBabies(predator) {
     baby.userData.collected = false;
     baby.userData.scattered = true;
 
-    // Scatter in random direction away from predator
+    // Set a scatter target — baby will RUN there over time instead of teleporting
     const angle = Math.random() * Math.PI * 2;
-    const scatterDist = 5 + Math.random() * 5;
-    const newX = baby.position.x + Math.cos(angle) * scatterDist;
-    const newZ = baby.position.z + Math.sin(angle) * scatterDist;
-
-    // Clamp to bounds
+    const scatterDist = 6 + Math.random() * 6;
     const bound = GROUND_SIZE * 0.7;
-    baby.position.x = Math.max(-bound, Math.min(bound, newX));
-    baby.position.z = Math.max(-bound, Math.min(bound, newZ));
-    baby.position.y = getGroundHeight(baby.position.x, baby.position.z);
-    baby.userData.baseY = baby.position.y;
-
-    // Re-add ring
-    const ringGeo = new THREE.RingGeometry(0.6, 0.75, 24);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xFFFF88, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.15;
-    baby.add(ring);
-    baby.userData.ring = ring;
+    baby.userData.scatterTarget = {
+      x: Math.max(-bound, Math.min(bound, baby.position.x + Math.cos(angle) * scatterDist)),
+      z: Math.max(-bound, Math.min(bound, baby.position.z + Math.sin(angle) * scatterDist)),
+    };
+    baby.userData.scatterSpeed = 8 + Math.random() * 4; // fast run speed
   }
 }
 
 function animateUncollectedBabies(delta) {
   babies.forEach(baby => {
     if (baby.userData.collected) return;
+
+    // If baby is scattering (running to target), animate the run
+    if (baby.userData.scatterTarget) {
+      const t = baby.userData.scatterTarget;
+      const dx = t.x - baby.position.x;
+      const dz = t.z - baby.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+
+      if (dist > 0.3) {
+        // Run toward scatter target
+        const spd = baby.userData.scatterSpeed || 10;
+        const nx = dx / dist;
+        const nz = dz / dist;
+        baby.position.x += nx * spd * delta;
+        baby.position.z += nz * spd * delta;
+
+        // Face running direction
+        const angle = Math.atan2(nx, nz);
+        let angleDiff = angle - baby.rotation.y;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        baby.rotation.y += angleDiff * 10 * delta;
+
+        // Fast waddle while running
+        baby.children[0].rotation.z = Math.sin(elapsedTime * 18 + baby.userData.index * 3) * 0.2;
+
+        // Stay on ground
+        const groundY = getGroundHeight(baby.position.x, baby.position.z);
+        baby.position.y += (groundY - baby.position.y) * 10 * delta;
+      } else {
+        // Arrived at scatter destination
+        baby.userData.scatterTarget = null;
+        baby.userData.scatterSpeed = 0;
+        baby.userData.baseY = getGroundHeight(baby.position.x, baby.position.z);
+        baby.children[0].rotation.z = 0;
+
+        // Re-add ring now that baby has stopped
+        if (!baby.userData.ring) {
+          const ringGeo = new THREE.RingGeometry(0.6, 0.75, 24);
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0xFFFF88, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.rotation.x = -Math.PI / 2;
+          ring.position.y = 0.15;
+          baby.add(ring);
+          baby.userData.ring = ring;
+        }
+      }
+      return;
+    }
+
+    // Normal idle bobbing
     const bobOffset = (Math.sin(elapsedTime * BABY_BOB_SPEED + baby.userData.index * 2) + 1) * 0.5 * BABY_BOB_HEIGHT;
     baby.position.y = baby.userData.baseY + bobOffset;
     const ring = baby.userData.ring;
