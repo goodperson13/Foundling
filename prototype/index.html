@@ -1004,6 +1004,20 @@ function updatePredators(delta) {
     var data = pred.userData;
     data.cooldown = Math.max(0, data.cooldown - delta);
 
+    // Always advance patrol distance
+    data._dist = (data._dist + data.speed * delta) % data._totalLen;
+
+    // Get patrol path position
+    var d = data._dist;
+    var seg = data._segs[0];
+    for (var i = data._segs.length - 1; i >= 0; i--) {
+      if (d >= data._segs[i].cum) { seg = data._segs[i]; break; }
+    }
+    var t = seg.len > 0 ? (d - seg.cum) / seg.len : 0;
+    var patrolX = seg.sx + (seg.ex - seg.sx) * t;
+    var patrolZ = seg.sz + (seg.ez - seg.sz) * t;
+    var patrolRot = Math.atan2(seg.ex - seg.sx, seg.ez - seg.sz);
+
     // Check distance to player
     var dx = player.position.x - pred.position.x;
     var dz = player.position.z - pred.position.z;
@@ -1026,21 +1040,23 @@ function updatePredators(delta) {
       }
       targetRot = Math.atan2(dx, dz);
     } else {
-      // Patrol mode: follow patrol path
-      data._dist = (data._dist + data.speed * delta) % data._totalLen;
+      // Not chasing: move back to patrol path
+      var pdx = patrolX - pred.position.x;
+      var pdz = patrolZ - pred.position.z;
+      var distToPatrol = Math.sqrt(pdx * pdx + pdz * pdz);
 
-      // Find current segment
-      var d = data._dist;
-      var seg = data._segs[0];
-      for (var i = data._segs.length - 1; i >= 0; i--) {
-        if (d >= data._segs[i].cum) { seg = data._segs[i]; break; }
+      if (distToPatrol > 0.3) {
+        // Move toward patrol path at normal speed
+        var moveX = (pdx / distToPatrol) * data.speed * delta;
+        var moveZ = (pdz / distToPatrol) * data.speed * delta;
+        nx = pred.position.x + moveX;
+        nz = pred.position.z + moveZ;
+      } else {
+        // Close to patrol path, use patrol position
+        nx = patrolX;
+        nz = patrolZ;
       }
-
-      // Lerp within segment
-      var t = seg.len > 0 ? (d - seg.cum) / seg.len : 0;
-      nx = seg.sx + (seg.ex - seg.sx) * t;
-      nz = seg.sz + (seg.ez - seg.sz) * t;
-      targetRot = Math.atan2(seg.ex - seg.sx, seg.ez - seg.sz);
+      targetRot = patrolRot;
     }
 
     // Update position
@@ -1049,8 +1065,7 @@ function updatePredators(delta) {
     pred.position.y = getGroundHeight(nx, nz);
 
     // Smooth rotation: lerp toward target
-    data._targetRotation = targetRot;
-    var rotDiff = data._targetRotation - pred.rotation.y;
+    var rotDiff = targetRot - pred.rotation.y;
     // Normalize angle difference to [-PI, PI]
     while (rotDiff > Math.PI) rotDiff -= 2 * Math.PI;
     while (rotDiff < -Math.PI) rotDiff += 2 * Math.PI;
