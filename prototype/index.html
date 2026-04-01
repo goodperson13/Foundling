@@ -254,17 +254,18 @@ const LEVELS = [
       { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
     ],
     predators: [
-      { type: 'wolf', patrol: [{ x: -8, z: -8 }, { x: 8, z: -8 }, { x: 8, z: 8 }, { x: -8, z: 8 }], speed: 3.8 }
+      { type: 'fox', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }], speed: 3.0 },
+      { type: 'wolf', patrol: [{ x: 8, z: 8 }, { x: -8, z: -8 }, { x: 8, z: -8 }, { x: -8, z: 8 }], speed: 3.8 }
     ],
     flowerCount: 25,
     rockCount: 20,
     cloudCount: 3,
     tutorial: false,
-    starTimes: [120, 60],
+    starTimes: [150, 75],
     introTips: [
-      { text: "A wolf hunts in this dark forest. Stay away from it!", type: "danger" },
+      { text: "A FOX and WOLF prowl this dark forest. Stay away from both!", type: "danger" },
       { text: "Trees form a dense maze. Navigate carefully around them.", type: "info" },
-      { text: "The wolf patrols the center. Stick to the perimeter.", type: "danger" },
+      { text: "The wolf patrols the center while the fox circles the edges.", type: "danger" },
       { text: "Find all 6 babies to complete the level.", type: "goal" },
     ],
   },
@@ -292,17 +293,18 @@ const LEVELS = [
       { x: -10, z: -14 }, { x: 10, z: -14 }, { x: -10, z: 14 }, { x: 10, z: 14 },
     ],
     predators: [
-      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 }
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
+      { type: 'fox', patrol: [{ x: 0, z: 8 }, { x: 8, z: 0 }, { x: 0, z: -8 }, { x: -8, z: 0 }], speed: 3.0 }
     ],
     flowerCount: 30,
     rockCount: 20,
     cloudCount: 8,
     tutorial: false,
-    starTimes: [120, 60],
+    starTimes: [140, 70],
     introTips: [
-      { text: "An eagle guards the summit. Avoid its aerial patrol!", type: "danger" },
+      { text: "An EAGLE circles overhead while a FOX patrols the ground!", type: "danger" },
       { text: "Your babies are scattered on the mountain slopes.", type: "goal" },
-      { text: "Navigate carefully to reach the peak.", type: "info" },
+      { text: "Navigate carefully to avoid both threats and reach the peak.", type: "info" },
     ],
   },
   {
@@ -333,18 +335,19 @@ const LEVELS = [
     ],
     predators: [
       { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 3.8 },
-      { type: 'coyote', patrol: [{ x: 10, z: -10 }, { x: -10, z: -10 }, { x: -10, z: 10 }, { x: 10, z: 10 }], speed: 3.2 }
+      { type: 'coyote', patrol: [{ x: 10, z: -10 }, { x: -10, z: -10 }, { x: -10, z: 10 }, { x: 10, z: 10 }], speed: 3.2 },
+      { type: 'fox', patrol: [{ x: 6, z: 6 }, { x: -6, z: -6 }, { x: 6, z: -6 }, { x: -6, z: 6 }], speed: 3.0 }
     ],
     flowerCount: 30,
     rockCount: 22,
     cloudCount: 4,
     tutorial: false,
-    starTimes: [150, 75],
+    starTimes: [180, 90],
     introTips: [
-      { text: "A WOLF and COYOTE hunt this wild territory!", type: "danger" },
-      { text: "They patrol different routes. Stay alert and avoid both.", type: "danger" },
-      { text: "Trees are your cover. Use the forest strategically.", type: "info" },
-      { text: "Find all 5 babies to complete the challenge.", type: "goal" },
+      { text: "WOLF, COYOTE, and FOX — the ULTIMATE CHALLENGE!", type: "danger" },
+      { text: "Three predators hunt this wild territory from all angles.", type: "danger" },
+      { text: "Trees are your only cover. Use the forest strategically.", type: "info" },
+      { text: "Find all 5 babies to complete the ultimate challenge.", type: "goal" },
     ],
   },
 ];
