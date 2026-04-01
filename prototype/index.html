@@ -209,7 +209,7 @@ const LEVELS = [
       { x: -6, z: 3 }, { x: 4, z: -5 },
     ],
     predators: [
-      { type: 'fox', patrol: [{ x: -5, z: 0 }, { x: 5, z: -5 }, { x: 10, z: 0 }, { x: 5, z: 5 }, { x: -5, z: 5 }], speed: 2, chaseSpeed: 3.2, chaseRadius: 8 }
+      { type: 'fox', patrol: [{ x: -8, z: -3 }, { x: 3, z: -8 }, { x: 10, z: -2 }, { x: 6, z: 6 }, { x: -2, z: 4 }, { x: -8, z: 8 }, { x: -12, z: 2 }], speed: 3 }
     ],
     flowerCount: 40,
     rockCount: 15,
@@ -638,8 +638,6 @@ function createPredators(lvl) {
       patrol: pDef.patrol,
       patrolIndex: 0,
       speed: pDef.speed,
-      chaseSpeed: pDef.chaseSpeed || pDef.speed,
-      chaseRadius: pDef.chaseRadius || 0,
       cooldown: 0,
     };
     scene.add(fox);
@@ -981,56 +979,28 @@ function updatePredators(delta) {
     var data = pred.userData;
     data.cooldown = Math.max(0, data.cooldown - delta);
 
-    // Determine speed — faster when chasing player
-    var spd = data.speed;
-    var chaseRadius = data.chaseRadius || 0;
-    var chasing = false;
+    // Simple patrol — always move toward current waypoint
+    var wp = data.patrol[data.patrolIndex];
+    var dx = wp.x - pred.position.x;
+    var dz = wp.z - pred.position.z;
+    var dist = Math.sqrt(dx * dx + dz * dz);
 
-    if (chaseRadius > 0 && followChain.length > 0 && !playerStunned) {
-      var pdx = player.position.x - pred.position.x;
-      var pdz = player.position.z - pred.position.z;
-      var pDist = Math.sqrt(pdx * pdx + pdz * pdz);
-      if (pDist < chaseRadius && pDist > 0.5) {
-        chasing = true;
-        spd = data.chaseSpeed || spd;
-        // Move directly toward player
-        var pnx = pdx / pDist;
-        var pnz = pdz / pDist;
-        pred.position.set(
-          pred.position.x + pnx * spd * delta,
-          pred.position.y,
-          pred.position.z + pnz * spd * delta
-        );
-        // Face player
-        var pAngle = Math.atan2(pnx, pnz);
-        pred.rotation.y = pAngle;
-      }
-    }
-
-    if (!chasing) {
-      // Simple patrol — always move toward current waypoint
-      var wp = data.patrol[data.patrolIndex];
-      var dx = wp.x - pred.position.x;
-      var dz = wp.z - pred.position.z;
-      var dist = Math.sqrt(dx * dx + dz * dz);
-
-      if (dist < 0.5) {
-        // Reached waypoint, advance to next
-        data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
-      } else {
-        // Move toward waypoint
-        var nx = dx / dist;
-        var nz = dz / dist;
-        var step = spd * delta;
-        pred.position.set(
-          pred.position.x + nx * step,
-          pred.position.y,
-          pred.position.z + nz * step
-        );
-        // Face movement direction
-        var angle = Math.atan2(nx, nz);
-        pred.rotation.y = angle;
-      }
+    if (dist < 0.5) {
+      // Reached waypoint, advance to next
+      data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
+    } else {
+      // Move toward waypoint
+      var nx = dx / dist;
+      var nz = dz / dist;
+      var step = data.speed * delta;
+      pred.position.set(
+        pred.position.x + nx * step,
+        pred.position.y,
+        pred.position.z + nz * step
+      );
+      // Face movement direction
+      var angle = Math.atan2(nx, nz);
+      pred.rotation.y = angle;
     }
 
     // Ground height
