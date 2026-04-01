@@ -62,6 +62,21 @@ canvas { display: block; }
 #tutorial-next-btn { background: #4a7c59; color: #fff; border: none; padding: 8px 24px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: transform 0.15s; }
 #tutorial-next-btn:hover { transform: scale(1.05); }
 @keyframes tutorialIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Level Intro */
+#level-intro { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 90; animation: fadeIn 0.4s ease-out; }
+#level-intro .intro-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 36px 44px; max-width: 440px; width: 90%; text-align: center; }
+#level-intro .intro-level { font-size: 14px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 6px; }
+#level-intro .intro-name { font-size: 30px; color: #fff; font-weight: bold; margin-bottom: 20px; }
+#level-intro .intro-tips { color: rgba(255,255,255,0.85); font-size: 16px; line-height: 1.7; margin-bottom: 24px; text-align: left; }
+#level-intro .intro-tip { margin-bottom: 10px; padding-left: 24px; position: relative; }
+#level-intro .intro-tip::before { content: ''; position: absolute; left: 0; top: 8px; width: 12px; height: 12px; border-radius: 50%; }
+#level-intro .intro-tip.danger::before { background: #e84444; }
+#level-intro .intro-tip.info::before { background: #4a9cdb; }
+#level-intro .intro-tip.goal::before { background: #5daa3a; }
+#level-intro .intro-start-btn { background: #fff; color: #2d5016; border: none; padding: 14px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: transform 0.2s; }
+#level-intro .intro-start-btn:hover { transform: scale(1.05); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -114,6 +129,16 @@ canvas { display: block; }
   </div>
 </div>
 
+<!-- Level Intro -->
+<div id="level-intro">
+  <div class="intro-card">
+    <div class="intro-level" id="intro-level-label"></div>
+    <div class="intro-name" id="intro-level-name"></div>
+    <div class="intro-tips" id="intro-tips"></div>
+    <button class="intro-start-btn" id="intro-start-btn">Start</button>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ============================================================
@@ -153,6 +178,7 @@ const LEVELS = [
     cloudCount: 6,
     tutorial: true,
     starTimes: [60, 30],
+    introTips: [],
   },
   {
     id: 2,
@@ -183,13 +209,19 @@ const LEVELS = [
       { x: -6, z: 3 }, { x: 4, z: -5 },
     ],
     predators: [
-      { type: 'fox', patrol: [{ x: -5, z: 0 }, { x: 5, z: -5 }, { x: 10, z: 0 }, { x: 5, z: 5 }, { x: -5, z: 5 }], speed: 2 }
+      { type: 'fox', patrol: [{ x: -5, z: 0 }, { x: 5, z: -5 }, { x: 10, z: 0 }, { x: 5, z: 5 }, { x: -5, z: 5 }], speed: 2, chaseSpeed: 3.2, chaseRadius: 8 }
     ],
     flowerCount: 40,
     rockCount: 15,
     cloudCount: 5,
     tutorial: false,
     starTimes: [90, 45],
+    introTips: [
+      { text: "A fox is patrolling this forest. Stay away from it!", type: "danger" },
+      { text: "If the fox catches you, your babies will scatter and run away.", type: "danger" },
+      { text: "Scattered babies can be re-collected — just find them again.", type: "info" },
+      { text: "Find all 4 babies to complete the level.", type: "goal" },
+    ],
   },
 ];
 
@@ -217,7 +249,7 @@ const COLLECT_RADIUS = 1.5;
 const GROUND_SIZE = 40;
 const BABY_BOB_SPEED = 3;
 const BABY_BOB_HEIGHT = 0.08;
-const PREDATOR_DETECT_RADIUS = 2.0;
+const PREDATOR_DETECT_RADIUS = 2.5;
 const SCATTER_STUN_TIME = 0.6;
 
 // Save data
@@ -341,12 +373,20 @@ function loadLevel(levelIndex) {
   document.getElementById('level-name-hud').textContent = `Level ${lvl.id} — ${lvl.name}`;
   document.getElementById('level-complete').style.display = 'none';
 
-  gameStarted = true;
   clock.start();
+
+  // Show level intro if there are tips, otherwise start immediately
+  if (lvl.introTips && lvl.introTips.length > 0) {
+    gameStarted = false; // pause until intro dismissed
+    showLevelIntro(lvl);
+  } else {
+    gameStarted = true;
+  }
 
   // Tutorial for level 1 only
   if (lvl.tutorial) {
     playerStartPos = player.position.clone();
+    gameStarted = true;
     startTutorial();
   }
 }
@@ -938,36 +978,63 @@ function updatePredators(delta) {
     const data = pred.userData;
     data.cooldown = Math.max(0, data.cooldown - delta);
 
-    // Move along patrol path — use remaining budget so fox never pauses between waypoints
-    let moveBudget = data.speed * delta;
+    // Check if player is within chase radius
+    const chaseRadius = data.chaseRadius || 0;
+    const chaseSpeed = data.chaseSpeed || data.speed;
+    let isChasing = false;
 
-    while (moveBudget > 0.001) {
-      const target = data.patrol[data.patrolIndex];
-      const dx = target.x - pred.position.x;
-      const dz = target.z - pred.position.z;
-      const dist = Math.sqrt(dx * dx + dz * dz);
+    if (chaseRadius > 0 && followChain.length > 0 && !playerStunned && player) {
+      const pdx = player.position.x - pred.position.x;
+      const pdz = player.position.z - pred.position.z;
+      const playerDist = Math.sqrt(pdx * pdx + pdz * pdz);
 
-      if (dist <= moveBudget) {
-        // Reach this waypoint and use leftover budget toward next one
-        pred.position.x = target.x;
-        pred.position.z = target.z;
-        moveBudget -= dist;
-        data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
-      } else {
-        // Move toward waypoint
-        const nx = dx / dist;
-        const nz = dz / dist;
-        pred.position.x += nx * moveBudget;
-        pred.position.z += nz * moveBudget;
+      if (playerDist < chaseRadius && playerDist > 0.3) {
+        // Chase the player!
+        isChasing = true;
+        const nx = pdx / playerDist;
+        const nz = pdz / playerDist;
+        const moveAmt = chaseSpeed * delta;
+        pred.position.x += nx * moveAmt;
+        pred.position.z += nz * moveAmt;
 
-        // Face direction smoothly
+        // Face player smoothly
         const angle = Math.atan2(nx, nz);
         let angleDiff = angle - pred.rotation.y;
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-        pred.rotation.y += angleDiff * 6 * delta;
+        pred.rotation.y += angleDiff * 8 * delta;
+      }
+    }
 
-        moveBudget = 0;
+    // If not chasing, patrol normally
+    if (!isChasing) {
+      let moveBudget = data.speed * delta;
+
+      while (moveBudget > 0.001) {
+        const target = data.patrol[data.patrolIndex];
+        const dx = target.x - pred.position.x;
+        const dz = target.z - pred.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+
+        if (dist <= moveBudget) {
+          pred.position.x = target.x;
+          pred.position.z = target.z;
+          moveBudget -= dist;
+          data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
+        } else {
+          const nx = dx / dist;
+          const nz = dz / dist;
+          pred.position.x += nx * moveBudget;
+          pred.position.z += nz * moveBudget;
+
+          const angle = Math.atan2(nx, nz);
+          let angleDiff = angle - pred.rotation.y;
+          while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+          while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+          pred.rotation.y += angleDiff * 6 * delta;
+
+          moveBudget = 0;
+        }
       }
     }
 
@@ -1198,6 +1265,29 @@ function winLevel() {
   document.getElementById('level-complete').style.display = 'flex';
 }
 
+// --- LEVEL INTRO ---
+function showLevelIntro(lvl) {
+  document.getElementById('intro-level-label').textContent = `Level ${lvl.id}`;
+  document.getElementById('intro-level-name').textContent = lvl.name;
+
+  const tipsContainer = document.getElementById('intro-tips');
+  tipsContainer.innerHTML = '';
+  lvl.introTips.forEach(tip => {
+    const div = document.createElement('div');
+    div.className = 'intro-tip ' + tip.type;
+    div.textContent = tip.text;
+    tipsContainer.appendChild(div);
+  });
+
+  document.getElementById('level-intro').style.display = 'flex';
+}
+
+function dismissLevelIntro() {
+  document.getElementById('level-intro').style.display = 'none';
+  gameStarted = true;
+  elapsedTime = 0; // reset timer so intro time doesn't count
+}
+
 // --- TUTORIAL ---
 function startTutorial() {
   tutorialStep = 0;
@@ -1244,6 +1334,7 @@ function goToMenu() {
   document.getElementById('hud').style.display = 'none';
   document.getElementById('level-name-hud').style.display = 'none';
   document.getElementById('tutorial-overlay').style.display = 'none';
+  document.getElementById('level-intro').style.display = 'none';
   document.getElementById('title-screen').style.display = 'flex';
   document.getElementById('title-screen').style.opacity = '1';
   buildLevelButtons();
@@ -1269,6 +1360,7 @@ function onResize() {
 document.getElementById('menu-btn').addEventListener('click', goToMenu);
 document.getElementById('next-level-btn').addEventListener('click', nextLevel);
 document.getElementById('tutorial-next-btn').addEventListener('click', advanceTutorial);
+document.getElementById('intro-start-btn').addEventListener('click', dismissLevelIntro);
 
 // Start
 init();
