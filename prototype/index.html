@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Foundling - Prototype</title>
+<title>Foundling</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; touch-action: none; }
@@ -14,7 +14,10 @@ canvas { display: block; }
 #baby-counter { background: rgba(0,0,0,0.5); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
 #baby-counter .icon { font-size: 22px; }
 #timer { background: rgba(0,0,0,0.5); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 18px; }
-#hint { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 15px; z-index: 10; pointer-events: none; transition: opacity 0.5s; }
+#level-name-hud { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 16px; pointer-events: none; z-index: 10; }
+
+/* Warning flash */
+#warning-flash { position: fixed; inset: 0; background: rgba(255,60,60,0.25); pointer-events: none; z-index: 8; opacity: 0; transition: opacity 0.15s; }
 
 /* Mobile Controls */
 #mobile-controls { position: fixed; bottom: 20px; left: 20px; z-index: 20; display: none; }
@@ -30,9 +33,12 @@ canvas { display: block; }
 #title-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #2d5016 0%, #4a7c59 40%, #7ab648 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.6s; }
 #title-screen h1 { font-size: clamp(48px, 10vw, 80px); color: #fff; text-shadow: 3px 3px 6px rgba(0,0,0,0.4); margin-bottom: 8px; letter-spacing: 4px; }
 #title-screen .tagline { font-size: clamp(14px, 3vw, 20px); color: rgba(255,255,255,0.85); margin-bottom: 40px; font-style: italic; }
-#play-btn { background: #fff; color: #2d5016; border: none; padding: 16px 48px; font-size: 22px; font-weight: bold; border-radius: 40px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-#play-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
-#title-screen .level-label { margin-top: 16px; color: rgba(255,255,255,0.7); font-size: 14px; }
+.level-buttons { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+.level-btn { background: #fff; color: #2d5016; border: none; padding: 14px 28px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); min-width: 200px; }
+.level-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.level-btn.locked { background: rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); cursor: not-allowed; }
+.level-btn.locked:hover { transform: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.level-btn .stars-preview { font-size: 14px; display: block; margin-top: 4px; }
 
 /* Level Complete */
 #level-complete { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
@@ -41,8 +47,11 @@ canvas { display: block; }
 #level-complete .card .subtitle { color: #666; margin-bottom: 20px; font-size: 16px; }
 #level-complete .stars { font-size: 40px; margin-bottom: 20px; }
 #level-complete .stats { color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 24px; }
-#level-complete .restart-btn { background: #4a7c59; color: #fff; border: none; padding: 14px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: transform 0.2s; }
-#level-complete .restart-btn:hover { transform: scale(1.05); }
+.complete-buttons { display: flex; gap: 12px; justify-content: center; }
+.complete-btn { border: none; padding: 14px 32px; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: transform 0.2s; }
+.complete-btn:hover { transform: scale(1.05); }
+.complete-btn.primary { background: #4a7c59; color: #fff; }
+.complete-btn.secondary { background: #e0e0e0; color: #333; }
 
 /* Tutorial */
 #tutorial-overlay { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 80px; z-index: 50; pointer-events: none; }
@@ -61,8 +70,7 @@ canvas { display: block; }
 <div id="title-screen">
   <h1>FOUNDLING</h1>
   <p class="tagline">Find your babies. Protect your family.</p>
-  <button id="play-btn">PLAY</button>
-  <p class="level-label">Level 1 — Spring Meadow</p>
+  <div class="level-buttons" id="level-buttons"></div>
 </div>
 
 <!-- HUD -->
@@ -70,6 +78,8 @@ canvas { display: block; }
   <div id="baby-counter"><span class="icon">🐣</span> <span id="counter-text">0 / 3</span></div>
   <div id="timer">0:00</div>
 </div>
+<div id="level-name-hud" style="display:none;"></div>
+<div id="warning-flash"></div>
 <div id="tutorial-overlay" style="display:none;">
   <div class="tutorial-box" id="tutorial-box">
     <p id="tutorial-text"></p>
@@ -93,19 +103,95 @@ canvas { display: block; }
 <!-- Level Complete -->
 <div id="level-complete">
   <div class="card">
-    <h2>All Found!</h2>
+    <h2 id="complete-title">All Found!</h2>
     <p class="subtitle">Your babies are safe!</p>
     <div class="stars" id="stars-display">⭐⭐⭐</div>
     <div class="stats" id="complete-stats"></div>
-    <button class="restart-btn" id="restart-btn">Play Again</button>
+    <div class="complete-buttons">
+      <button class="complete-btn secondary" id="menu-btn">Menu</button>
+      <button class="complete-btn primary" id="next-level-btn">Next Level</button>
+    </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ============================================================
-// FOUNDLING — Level 1 Prototype: Spring Meadow
+// FOUNDLING — Multi-Level Game
 // ============================================================
+
+// --- LEVEL DEFINITIONS ---
+const LEVELS = [
+  {
+    id: 1,
+    name: "Spring Meadow",
+    subtitle: "Tutorial",
+    totalBabies: 3,
+    skyColor: 0x87CEEB,
+    fogNear: 30, fogFar: 60,
+    groundColor: 0x5daa3a,
+    treeColors: [0x2E8B28, 0x3DA33D, 0x4DBF4D, 0x228B22],
+    babyPositions: [
+      { x: -6, z: -4 }, { x: 12, z: 6 }, { x: -2, z: -16 }
+    ],
+    treePositions: [
+      { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 },
+      { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 },
+      { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 },
+      { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 },
+      { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 },
+      { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 },
+    ],
+    bushPositions: [
+      { x: -9, z: -6.5 }, { x: -7.5, z: -5.5 },
+      { x: 11, z: 3.5 }, { x: 9.5, z: 2.5 },
+      { x: -5, z: -14.5 }, { x: -3.5, z: -13.5 },
+    ],
+    predators: [],
+    flowerCount: 60,
+    rockCount: 12,
+    cloudCount: 6,
+    tutorial: true,
+    starTimes: [60, 30],
+  },
+  {
+    id: 2,
+    name: "Sunny Forest",
+    subtitle: "Watch out for the fox!",
+    totalBabies: 4,
+    skyColor: 0x78B8DE,
+    fogNear: 25, fogFar: 55,
+    groundColor: 0x4D9932,
+    treeColors: [0x1E6B18, 0x2D8B28, 0x3DA33D, 0x1A5C14],
+    babyPositions: [
+      { x: -10, z: -8 }, { x: 14, z: 5 }, { x: -3, z: -18 }, { x: 8, z: -14 }
+    ],
+    treePositions: [
+      { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 }, { x: -8, z: -4 },
+      { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 }, { x: 6, z: 2 },
+      { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 }, { x: -4, z: 5 },
+      { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 }, { x: 3, z: -8 },
+      { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 }, { x: -12, z: -16 },
+      { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 }, { x: 10, z: -2 },
+      { x: -2, z: -10 }, { x: 17, z: 8 }, { x: -17, z: 10 }, { x: 0, z: 16 },
+    ],
+    bushPositions: [
+      { x: -11, z: -8.5 }, { x: -9.5, z: -7.5 },
+      { x: 13, z: 5.5 }, { x: 15, z: 4.5 },
+      { x: -4, z: -18.5 }, { x: -2, z: -17.5 },
+      { x: 7, z: -14.5 }, { x: 9, z: -13.5 },
+      { x: -6, z: 3 }, { x: 4, z: -5 },
+    ],
+    predators: [
+      { type: 'fox', patrol: [{ x: -5, z: 0 }, { x: 5, z: -5 }, { x: 10, z: 0 }, { x: 5, z: 5 }, { x: -5, z: 5 }], speed: 3.5 }
+    ],
+    flowerCount: 40,
+    rockCount: 15,
+    cloudCount: 5,
+    tutorial: false,
+    starTimes: [90, 45],
+  },
+];
 
 // --- GLOBALS ---
 let scene, camera, renderer, clock, dirLight;
@@ -113,23 +199,36 @@ let player, playerGroup;
 let babies = [];
 let collectedBabies = [];
 let followChain = [];
+let predators = [];
 let trees = [];
 let flowers = [];
+let bushes = [];
 let gameStarted = false;
 let levelComplete = false;
 let elapsedTime = 0;
-const TOTAL_BABIES = 3;
+let currentLevel = 0;
+let totalBabies = 3;
+let scatterCount = 0;
+let playerStunned = false;
+let stunTimer = 0;
 const PLAYER_SPEED = 6;
 const FOLLOW_DISTANCE = 1.2;
 const COLLECT_RADIUS = 1.5;
 const GROUND_SIZE = 40;
 const BABY_BOB_SPEED = 3;
 const BABY_BOB_HEIGHT = 0.08;
+const PREDATOR_DETECT_RADIUS = 2.0;
+const SCATTER_STUN_TIME = 0.6;
+
+// Save data
+let saveData = { unlockedLevel: 1, stars: {} };
+try { const s = localStorage.getItem('foundling_save'); if (s) saveData = JSON.parse(s); } catch(e) {}
+function save() { try { localStorage.setItem('foundling_save', JSON.stringify(saveData)); } catch(e) {} }
 
 // Tutorial
 let tutorialStep = 0;
 let tutorialActive = false;
-let tutorialWaiting = false; // waiting for player action
+let tutorialWaiting = false;
 const tutorialSteps = [
   { text: "Welcome to Foundling! You are a parent duck. Your babies have wandered off!", action: "click" },
   { text: "Use WASD or Arrow Keys to move around. Try walking forward now!", action: "move" },
@@ -138,26 +237,62 @@ const tutorialSteps = [
 ];
 
 // Input
-const keys = { w: false, a: false, s: false, d: false, up: false, down: false, left: false, right: false };
+const keys = { w: false, a: false, s: false, d: false };
 const mobileInput = { x: 0, z: 0 };
+let playerHasMoved = false;
+let playerStartPos = null;
 
 // --- INIT ---
 function init() {
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x87CEEB);
-  scene.fog = new THREE.Fog(0x87CEEB, 30, 60);
-  clock = new THREE.Clock();
-
-  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 12, 12);
-  camera.lookAt(0, 0, 0);
-
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap; // sharper shadows
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   document.body.appendChild(renderer.domElement);
+  clock = new THREE.Clock();
+
+  setupInput();
+  detectMobile();
+  buildLevelButtons();
+
+  window.addEventListener('resize', onResize);
+
+  // Start a dummy render loop
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  animate();
+}
+
+function buildLevelButtons() {
+  const container = document.getElementById('level-buttons');
+  container.innerHTML = '';
+  LEVELS.forEach((lvl, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (i + 1 > saveData.unlockedLevel ? ' locked' : '');
+    const starsText = saveData.stars[lvl.id] ? '⭐'.repeat(saveData.stars[lvl.id]) + '☆'.repeat(3 - saveData.stars[lvl.id]) : '';
+    btn.innerHTML = `Level ${lvl.id} — ${lvl.name}` + (starsText ? `<span class="stars-preview">${starsText}</span>` : '');
+    if (i + 1 <= saveData.unlockedLevel) {
+      btn.addEventListener('click', () => loadLevel(i));
+    }
+    container.appendChild(btn);
+  });
+}
+
+// --- LOAD LEVEL ---
+function loadLevel(levelIndex) {
+  currentLevel = levelIndex;
+  const lvl = LEVELS[levelIndex];
+  totalBabies = lvl.totalBabies;
+
+  // Clear old scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(lvl.skyColor);
+  scene.fog = new THREE.Fog(lvl.skyColor, lvl.fogNear, lvl.fogFar);
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 12, 12);
+  camera.lookAt(0, 0, 0);
 
   // Lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -166,32 +301,59 @@ function init() {
   dirLight = new THREE.DirectionalLight(0xfff4e0, 0.9);
   dirLight.position.set(10, 15, 10);
   dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set(4096, 4096); // 4x higher resolution
+  dirLight.shadow.mapSize.set(4096, 4096);
   dirLight.shadow.camera.near = 0.5;
   dirLight.shadow.camera.far = 80;
   dirLight.shadow.camera.left = -45;
   dirLight.shadow.camera.right = 45;
   dirLight.shadow.camera.top = 45;
   dirLight.shadow.camera.bottom = -45;
-  dirLight.shadow.bias = -0.001; // reduce shadow acne
+  dirLight.shadow.bias = -0.001;
   scene.add(dirLight);
 
-  createGround();
-  createPlayer();
-  createBabies();
-  createEnvironment();
-  setupInput();
-  detectMobile();
+  // Reset state
+  babies = [];
+  collectedBabies = [];
+  followChain = [];
+  predators = [];
+  trees = [];
+  flowers = [];
+  bushes = [];
+  gameStarted = false;
+  levelComplete = false;
+  elapsedTime = 0;
+  scatterCount = 0;
+  playerStunned = false;
+  stunTimer = 0;
+  playerHasMoved = false;
 
-  window.addEventListener('resize', onResize);
-  animate();
+  createGround(lvl);
+  createPlayer();
+  createBabies(lvl);
+  createEnvironment(lvl);
+  createPredators(lvl);
+
+  // UI
+  document.getElementById('title-screen').style.opacity = '0';
+  setTimeout(() => { document.getElementById('title-screen').style.display = 'none'; }, 600);
+  document.getElementById('hud').style.display = 'flex';
+  document.getElementById('level-name-hud').style.display = 'block';
+  document.getElementById('level-name-hud').textContent = `Level ${lvl.id} — ${lvl.name}`;
+  document.getElementById('level-complete').style.display = 'none';
+
+  gameStarted = true;
+  clock.start();
+
+  // Tutorial for level 1 only
+  if (lvl.tutorial) {
+    playerStartPos = player.position.clone();
+    startTutorial();
+  }
 }
 
 // --- GROUND ---
-function createGround() {
-  // Main ground
+function createGround(lvl) {
   const groundGeo = new THREE.PlaneGeometry(GROUND_SIZE * 2, GROUND_SIZE * 2, 32, 32);
-  // Add gentle hills
   const pos = groundGeo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
@@ -200,17 +362,18 @@ function createGround() {
     pos.setZ(i, height);
   }
   groundGeo.computeVertexNormals();
-
-  const groundMat = new THREE.MeshLambertMaterial({ color: 0x5daa3a });
+  const groundMat = new THREE.MeshLambertMaterial({ color: lvl.groundColor });
   const ground = new THREE.Mesh(groundGeo, groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
-
-  // (no dirt path for tutorial level - keep it clean)
 }
 
-// --- PLAYER (Duck) ---
+function getGroundHeight(x, z) {
+  return Math.sin(x * 0.15) * Math.cos(z * 0.15) * 0.6 + Math.sin(x * 0.3 + 1) * 0.3;
+}
+
+// --- DUCK ---
 function createDuckBody(color, scale = 1) {
   const group = new THREE.Group();
 
@@ -257,7 +420,7 @@ function createDuckBody(color, scale = 1) {
   tail.position.set(0, 0.55 * scale, -0.55 * scale);
   group.add(tail);
 
-  // Legs (visible cylindrical legs)
+  // Legs
   const legMat = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
   const legGeo = new THREE.CylinderGeometry(0.04 * scale, 0.04 * scale, 0.25 * scale, 6);
   const legL = new THREE.Mesh(legGeo, legMat);
@@ -267,7 +430,7 @@ function createDuckBody(color, scale = 1) {
   legR.position.set(0.13 * scale, 0.12 * scale, 0.05 * scale);
   group.add(legR);
 
-  // Feet (flat paddles at bottom of legs)
+  // Feet
   const footGeo = new THREE.BoxGeometry(0.18 * scale, 0.04 * scale, 0.22 * scale);
   const footMat = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
   const footL = new THREE.Mesh(footGeo, footMat);
@@ -277,7 +440,7 @@ function createDuckBody(color, scale = 1) {
   footR.position.set(0.13 * scale, 0.02, 0.1 * scale);
   group.add(footR);
 
-  // Wings (larger, more duck-like)
+  // Wings
   const wingGeo = new THREE.SphereGeometry(0.45 * scale, 8, 6);
   wingGeo.scale(0.35, 0.65, 1.2);
   const darkerColor = new THREE.Color(color).multiplyScalar(0.82);
@@ -308,122 +471,246 @@ function createPlayer() {
 }
 
 // --- BABIES ---
-function createBabies() {
-  const positions = [
-    { x: -6, z: -4 },
-    { x: 12, z: 6 },
-    { x: -2, z: -16 },
-  ];
-
-  positions.forEach((pos, i) => {
+function createBabies(lvl) {
+  lvl.babyPositions.forEach((pos, i) => {
     const babyGroup = new THREE.Group();
     const duck = createDuckBody(0xFFE87C, 0.55);
     babyGroup.add(duck);
     const spawnY = getGroundHeight(pos.x, pos.z);
     babyGroup.position.set(pos.x, spawnY, pos.z);
 
-    // Add a gentle glow / indicator ring so babies are findable
     const ringGeo = new THREE.RingGeometry(0.6, 0.75, 24);
     const ringMat = new THREE.MeshBasicMaterial({ color: 0xFFFF88, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = 0.15;
     babyGroup.add(ring);
-    babyGroup.userData = { ring, collected: false, index: i, baseY: spawnY };
+    babyGroup.userData = { ring, collected: false, index: i, baseY: spawnY, scattered: false };
 
     scene.add(babyGroup);
     babies.push(babyGroup);
   });
 }
 
-// --- ENVIRONMENT ---
-function createEnvironment() {
-  // Trees
-  const treePositions = [
-    { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 },
-    { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 },
-    { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 },
-    { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 },
-    { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 },
-    { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 },
-  ];
+// --- FOX PREDATOR ---
+function createFox() {
+  const group = new THREE.Group();
 
-  treePositions.forEach(pos => {
-    const tree = createTree(pos.x, pos.z);
+  // Body
+  const bodyGeo = new THREE.SphereGeometry(0.45, 10, 8);
+  bodyGeo.scale(1, 0.7, 1.4);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.35;
+  body.castShadow = true;
+  group.add(body);
+
+  // Head
+  const headGeo = new THREE.SphereGeometry(0.22, 8, 6);
+  headGeo.scale(1, 0.9, 1.2);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.set(0, 0.5, 0.5);
+  head.castShadow = true;
+  group.add(head);
+
+  // Snout
+  const snoutGeo = new THREE.ConeGeometry(0.08, 0.25, 6);
+  const snoutMat = new THREE.MeshLambertMaterial({ color: 0xDD7733 });
+  const snout = new THREE.Mesh(snoutGeo, snoutMat);
+  snout.rotation.x = -Math.PI / 2;
+  snout.position.set(0, 0.45, 0.72);
+  group.add(snout);
+
+  // Nose
+  const noseGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const noseMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  const nose = new THREE.Mesh(noseGeo, noseMat);
+  nose.position.set(0, 0.46, 0.83);
+  group.add(nose);
+
+  // Eyes
+  const eyeGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFCC00 });
+  const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeL.position.set(-0.12, 0.56, 0.58);
+  group.add(eyeL);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.12, 0.56, 0.58);
+  group.add(eyeR);
+
+  // Pupils
+  const pupilGeo = new THREE.SphereGeometry(0.02, 4, 4);
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilL.position.set(-0.12, 0.56, 0.62);
+  group.add(pupilL);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.12, 0.56, 0.62);
+  group.add(pupilR);
+
+  // Ears
+  const earGeo = new THREE.ConeGeometry(0.08, 0.2, 4);
+  const earMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
+  const earL = new THREE.Mesh(earGeo, earMat);
+  earL.position.set(-0.12, 0.72, 0.42);
+  earL.rotation.z = 0.15;
+  group.add(earL);
+  const earR = new THREE.Mesh(earGeo, earMat);
+  earR.position.set(0.12, 0.72, 0.42);
+  earR.rotation.z = -0.15;
+  group.add(earR);
+
+  // Legs
+  const legGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.25, 6);
+  const legMat = new THREE.MeshLambertMaterial({ color: 0x993300 });
+  [[-0.15, 0.12, 0.2], [0.15, 0.12, 0.2], [-0.15, 0.12, -0.25], [0.15, 0.12, -0.25]].forEach(p => {
+    const leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.set(p[0], p[1], p[2]);
+    group.add(leg);
+  });
+
+  // Tail (bushy)
+  const tailGeo = new THREE.SphereGeometry(0.18, 8, 6);
+  tailGeo.scale(0.6, 0.6, 1.5);
+  const tailMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
+  const tail = new THREE.Mesh(tailGeo, tailMat);
+  tail.position.set(0, 0.35, -0.65);
+  group.add(tail);
+
+  // White tail tip
+  const tipGeo = new THREE.SphereGeometry(0.1, 6, 6);
+  const tipMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+  const tip = new THREE.Mesh(tipGeo, tipMat);
+  tip.position.set(0, 0.35, -0.82);
+  group.add(tip);
+
+  return group;
+}
+
+function createPredators(lvl) {
+  lvl.predators.forEach(pDef => {
+    const fox = createFox();
+    const startPos = pDef.patrol[0];
+    fox.position.set(startPos.x, getGroundHeight(startPos.x, startPos.z), startPos.z);
+    fox.userData = {
+      type: pDef.type,
+      patrol: pDef.patrol,
+      patrolIndex: 0,
+      speed: pDef.speed,
+      cooldown: 0, // prevent rapid re-triggers
+    };
+    scene.add(fox);
+    predators.push(fox);
+  });
+}
+
+// --- ENVIRONMENT ---
+function createEnvironment(lvl) {
+  lvl.treePositions.forEach(pos => {
+    const tree = createTree(pos.x, pos.z, lvl.treeColors);
     scene.add(tree);
     trees.push(tree);
   });
 
-  // Flowers scattered
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < lvl.flowerCount; i++) {
     const x = (Math.random() - 0.5) * GROUND_SIZE * 1.5;
     const z = (Math.random() - 0.5) * GROUND_SIZE * 1.5;
-    // Don't place flowers on the path
     if (Math.abs(x) < 2 && z > -12 && z < 8) continue;
     const flower = createFlower(x, z);
     scene.add(flower);
     flowers.push(flower);
   }
 
-  // Rocks
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < lvl.rockCount; i++) {
     const x = (Math.random() - 0.5) * GROUND_SIZE * 1.4;
     const z = (Math.random() - 0.5) * GROUND_SIZE * 1.4;
     const rock = createRock(x, z);
     scene.add(rock);
   }
 
-  // Bushes near baby hiding spots
-  const bushPositions = [
-    { x: -9, z: -6.5 }, { x: -7.5, z: -5.5 },
-    { x: 11, z: 3.5 }, { x: 9.5, z: 2.5 },
-    { x: -5, z: -14.5 }, { x: -3.5, z: -13.5 },
-  ];
-  bushPositions.forEach(pos => {
+  lvl.bushPositions.forEach(pos => {
     const bush = createBush(pos.x, pos.z);
     scene.add(bush);
+    bushes.push(bush);
   });
 
-  // Clouds
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < lvl.cloudCount; i++) {
     const cloud = createCloud();
-    cloud.position.set(
-      (Math.random() - 0.5) * 50,
-      12 + Math.random() * 5,
-      (Math.random() - 0.5) * 50
-    );
+    cloud.position.set((Math.random() - 0.5) * 50, 12 + Math.random() * 5, (Math.random() - 0.5) * 50);
     cloud.userData = { speed: 0.2 + Math.random() * 0.3 };
     scene.add(cloud);
   }
 }
 
-function createTree(x, z) {
+// Higher-poly trees with multiple leaf clusters and detailed trunk
+function createTree(x, z, treeColors) {
   const group = new THREE.Group();
-  const height = 1.5 + Math.random() * 1;
-  const trunkGeo = new THREE.CylinderGeometry(0.15, 0.25, height, 8);
-  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8B5E3C });
+  const height = 2 + Math.random() * 1.5;
+
+  // Trunk — higher poly cylinder with slight taper
+  const trunkGeo = new THREE.CylinderGeometry(0.12, 0.3, height, 12);
+  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x6B4226 });
   const trunk = new THREE.Mesh(trunkGeo, trunkMat);
   trunk.position.y = height / 2;
   trunk.castShadow = true;
   group.add(trunk);
 
-  const leavesSize = 1 + Math.random() * 0.8;
-  const leavesGeo = new THREE.SphereGeometry(leavesSize, 8, 6);
-  const green = [0x2E8B28, 0x3DA33D, 0x4DBF4D, 0x228B22][Math.floor(Math.random() * 4)];
+  // Bark texture rings
+  for (let i = 0; i < 3; i++) {
+    const ringY = height * 0.2 + (height * 0.5) * (i / 2);
+    const barkGeo = new THREE.TorusGeometry(0.18 - i * 0.02, 0.03, 6, 12);
+    const barkMat = new THREE.MeshLambertMaterial({ color: 0x5A3520 });
+    const barkRing = new THREE.Mesh(barkGeo, barkMat);
+    barkRing.position.y = ringY;
+    barkRing.rotation.x = Math.PI / 2;
+    group.add(barkRing);
+  }
+
+  // Main leaf canopy — icosahedron for organic shape, higher poly
+  const green = treeColors[Math.floor(Math.random() * treeColors.length)];
   const leavesMat = new THREE.MeshLambertMaterial({ color: green });
-  const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-  leaves.position.y = height + leavesSize * 0.6;
-  leaves.castShadow = true;
-  group.add(leaves);
 
-  // Second leaf cluster
-  const leaves2Geo = new THREE.SphereGeometry(leavesSize * 0.7, 8, 6);
-  const leaves2 = new THREE.Mesh(leaves2Geo, leavesMat);
-  leaves2.position.set(leavesSize * 0.4, height + leavesSize * 0.3, 0);
-  leaves2.castShadow = true;
-  group.add(leaves2);
+  const mainSize = 1.2 + Math.random() * 0.6;
+  const mainGeo = new THREE.IcosahedronGeometry(mainSize, 1); // subdivision 1 for smoother
+  const mainLeaves = new THREE.Mesh(mainGeo, leavesMat);
+  mainLeaves.position.y = height + mainSize * 0.5;
+  mainLeaves.castShadow = true;
+  group.add(mainLeaves);
 
-  group.position.set(x, 0, z);
+  // Additional leaf clusters for fullness
+  const clusterCount = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < clusterCount; i++) {
+    const cSize = mainSize * (0.4 + Math.random() * 0.35);
+    const cGeo = new THREE.IcosahedronGeometry(cSize, 1);
+    const green2 = treeColors[Math.floor(Math.random() * treeColors.length)];
+    const cMat = new THREE.MeshLambertMaterial({ color: green2 });
+    const cluster = new THREE.Mesh(cGeo, cMat);
+    const angle = (i / clusterCount) * Math.PI * 2 + Math.random() * 0.5;
+    const dist = mainSize * 0.5 + Math.random() * 0.3;
+    cluster.position.set(
+      Math.cos(angle) * dist,
+      height + mainSize * (0.1 + Math.random() * 0.5),
+      Math.sin(angle) * dist
+    );
+    cluster.castShadow = true;
+    group.add(cluster);
+  }
+
+  // Small branches poking out
+  const branchGeo = new THREE.CylinderGeometry(0.02, 0.05, 0.6, 6);
+  const branchMat = new THREE.MeshLambertMaterial({ color: 0x5A3520 });
+  for (let i = 0; i < 2; i++) {
+    const branch = new THREE.Mesh(branchGeo, branchMat);
+    const bAngle = Math.random() * Math.PI * 2;
+    branch.position.set(Math.cos(bAngle) * 0.15, height * 0.6, Math.sin(bAngle) * 0.15);
+    branch.rotation.z = (Math.random() - 0.5) * 1.2;
+    branch.rotation.x = (Math.random() - 0.5) * 0.5;
+    group.add(branch);
+  }
+
+  const groundY = getGroundHeight(x, z);
+  group.position.set(x, groundY, z);
   return group;
 }
 
@@ -445,14 +732,14 @@ function createFlower(x, z) {
     petal.position.set(Math.cos(angle) * 0.06, 0.32, Math.sin(angle) * 0.06);
     group.add(petal);
   }
-  // Center
   const centerGeo = new THREE.SphereGeometry(0.05, 6, 4);
   const centerMat = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
   const center = new THREE.Mesh(centerGeo, centerMat);
   center.position.y = 0.32;
   group.add(center);
 
-  group.position.set(x, 0, z);
+  const groundY = getGroundHeight(x, z);
+  group.position.set(x, groundY, z);
   group.scale.setScalar(0.8 + Math.random() * 0.6);
   return group;
 }
@@ -461,7 +748,8 @@ function createRock(x, z) {
   const geo = new THREE.DodecahedronGeometry(0.3 + Math.random() * 0.4, 0);
   const mat = new THREE.MeshLambertMaterial({ color: 0x888888 });
   const rock = new THREE.Mesh(geo, mat);
-  rock.position.set(x, 0.15, z);
+  const groundY = getGroundHeight(x, z);
+  rock.position.set(x, groundY + 0.15, z);
   rock.rotation.set(Math.random(), Math.random(), Math.random());
   rock.scale.y = 0.6;
   rock.castShadow = true;
@@ -473,7 +761,7 @@ function createBush(x, z) {
   const sizes = [0.5, 0.4, 0.35];
   sizes.forEach((s, i) => {
     const geo = new THREE.SphereGeometry(s, 8, 6);
-    geo.scale(1, 0.7, 1); // flatten vertically so they look like bushes not spheres
+    geo.scale(1, 0.7, 1);
     const mat = new THREE.MeshLambertMaterial({ color: i === 0 ? 0x2D7D2D : 0x3A9D3A });
     const sphere = new THREE.Mesh(geo, mat);
     sphere.position.set((i - 1) * 0.35, s * 0.35, (i % 2) * 0.2);
@@ -498,12 +786,6 @@ function createCloud() {
   return group;
 }
 
-// --- GROUND HEIGHT ---
-// Matches the height formula used in createGround()
-function getGroundHeight(x, z) {
-  return Math.sin(x * 0.15) * Math.cos(z * 0.15) * 0.6 + Math.sin(x * 0.3 + 1) * 0.3;
-}
-
 // --- INPUT ---
 function setupInput() {
   document.addEventListener('keydown', (e) => {
@@ -521,7 +803,6 @@ function setupInput() {
     if (key === 'd' || key === 'arrowright') keys.d = false;
   });
 
-  // Mobile d-pad
   const btns = document.querySelectorAll('.d-btn');
   btns.forEach(btn => {
     const dir = btn.dataset.dir;
@@ -537,7 +818,6 @@ function setupInput() {
 }
 
 function setMobileDir(dir, active) {
-  const v = active ? 1 : 0;
   if (dir === 'up') mobileInput.z = active ? -1 : 0;
   if (dir === 'down') mobileInput.z = active ? 1 : 0;
   if (dir === 'left') mobileInput.x = active ? -1 : 0;
@@ -552,13 +832,23 @@ function detectMobile() {
 // --- GAME LOOP ---
 function animate() {
   requestAnimationFrame(animate);
-  const delta = clock.getDelta();
+  if (!scene || !camera) return;
+  const delta = Math.min(clock.getDelta(), 0.05); // cap delta
 
   if (gameStarted && !levelComplete) {
     elapsedTime += delta;
-    updatePlayer(delta);
+
+    if (playerStunned) {
+      stunTimer -= delta;
+      if (stunTimer <= 0) playerStunned = false;
+    } else {
+      updatePlayer(delta);
+    }
+
     updateBabies(delta);
+    updatePredators(delta);
     checkCollection();
+    checkPredatorCollision();
     updateCamera(delta);
     updateHUD();
     updateClouds(delta);
@@ -574,11 +864,8 @@ function updatePlayer(delta) {
   if (keys.w) dz -= 1;
   if (keys.s) dz += 1;
   if (keys.a) dx -= 1;
-  if (keys.d) dz -= 0; // just for key handling
-  if (keys.a) dx = -1;
-  if (keys.d) dx = 1;
+  if (keys.d) dx += 1;
 
-  // Mobile
   dx += mobileInput.x;
   dz += mobileInput.z;
 
@@ -590,53 +877,43 @@ function updatePlayer(delta) {
     player.position.x += dx * PLAYER_SPEED * delta;
     player.position.z += dz * PLAYER_SPEED * delta;
 
-    // Clamp to bounds
     const bound = GROUND_SIZE * 0.8;
     player.position.x = Math.max(-bound, Math.min(bound, player.position.x));
     player.position.z = Math.max(-bound, Math.min(bound, player.position.z));
 
-    // Stay on ground
     const targetY = getGroundHeight(player.position.x, player.position.z);
     player.position.y += (targetY - player.position.y) * 10 * delta;
 
-    // Face movement direction
     const targetAngle = Math.atan2(dx, dz);
-    let currentAngle = player.rotation.y;
-    let angleDiff = targetAngle - currentAngle;
+    let angleDiff = targetAngle - player.rotation.y;
     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
     player.rotation.y += angleDiff * 8 * delta;
 
-    // Waddle animation
     player.children[0].rotation.z = Math.sin(elapsedTime * 10) * 0.1;
   }
 }
 
 function updateBabies(delta) {
-  // Update following chain
   if (followChain.length === 0) return;
 
   let leader = player;
   for (let i = 0; i < followChain.length; i++) {
     const baby = followChain[i];
 
-    // Calculate horizontal distance only (ignore Y)
     const dx = leader.position.x - baby.position.x;
     const dz = leader.position.z - baby.position.z;
     const dist = Math.sqrt(dx * dx + dz * dz);
 
     if (dist > FOLLOW_DISTANCE) {
-      // Smooth lerp toward leader — faster when further away
       const lerpSpeed = Math.min(8, 3 + (dist - FOLLOW_DISTANCE) * 4);
       baby.position.x += dx * lerpSpeed * delta;
       baby.position.z += dz * lerpSpeed * delta;
     }
 
-    // Always lock Y to ground height (never go underground)
     const groundY = getGroundHeight(baby.position.x, baby.position.z);
     baby.position.y += (groundY - baby.position.y) * 10 * delta;
 
-    // Smoothly face leader
     if (dist > 0.1) {
       const angle = Math.atan2(dx, dz);
       let angleDiff = angle - baby.rotation.y;
@@ -645,24 +922,115 @@ function updateBabies(delta) {
       baby.rotation.y += angleDiff * 8 * delta;
     }
 
-    // Waddle when moving
     if (dist > FOLLOW_DISTANCE * 0.5) {
       baby.children[0].rotation.z = Math.sin(elapsedTime * 12 + i * 2) * 0.12;
     } else {
-      baby.children[0].rotation.z *= 0.9; // ease back to upright
+      baby.children[0].rotation.z *= 0.9;
     }
 
     leader = baby;
   }
 }
 
+// --- PREDATOR AI ---
+function updatePredators(delta) {
+  predators.forEach(pred => {
+    const data = pred.userData;
+    data.cooldown = Math.max(0, data.cooldown - delta);
+
+    // Patrol movement
+    const target = data.patrol[data.patrolIndex];
+    const dx = target.x - pred.position.x;
+    const dz = target.z - pred.position.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.5) {
+      data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
+    } else {
+      const nx = dx / dist;
+      const nz = dz / dist;
+      pred.position.x += nx * data.speed * delta;
+      pred.position.z += nz * data.speed * delta;
+
+      // Face direction
+      const angle = Math.atan2(nx, nz);
+      let angleDiff = angle - pred.rotation.y;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      pred.rotation.y += angleDiff * 5 * delta;
+    }
+
+    // Ground height
+    const groundY = getGroundHeight(pred.position.x, pred.position.z);
+    pred.position.y += (groundY - pred.position.y) * 10 * delta;
+  });
+}
+
+function checkPredatorCollision() {
+  if (playerStunned || followChain.length === 0) return;
+
+  predators.forEach(pred => {
+    if (pred.userData.cooldown > 0) return;
+    const dx = player.position.x - pred.position.x;
+    const dz = player.position.z - pred.position.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < PREDATOR_DETECT_RADIUS) {
+      scatterBabies(pred);
+      pred.userData.cooldown = 3; // 3 second cooldown
+    }
+  });
+}
+
+function scatterBabies(predator) {
+  if (followChain.length === 0) return;
+
+  scatterCount++;
+  playerStunned = true;
+  stunTimer = SCATTER_STUN_TIME;
+
+  // Flash warning
+  const flash = document.getElementById('warning-flash');
+  flash.style.opacity = '1';
+  setTimeout(() => { flash.style.opacity = '0'; }, 300);
+
+  // Scatter 1-2 babies (from the end of the chain)
+  const scatterNum = Math.min(followChain.length, 1 + Math.floor(Math.random() * 2));
+  for (let i = 0; i < scatterNum; i++) {
+    const baby = followChain.pop();
+    collectedBabies = collectedBabies.filter(b => b !== baby);
+    baby.userData.collected = false;
+    baby.userData.scattered = true;
+
+    // Scatter in random direction away from predator
+    const angle = Math.random() * Math.PI * 2;
+    const scatterDist = 5 + Math.random() * 5;
+    const newX = baby.position.x + Math.cos(angle) * scatterDist;
+    const newZ = baby.position.z + Math.sin(angle) * scatterDist;
+
+    // Clamp to bounds
+    const bound = GROUND_SIZE * 0.7;
+    baby.position.x = Math.max(-bound, Math.min(bound, newX));
+    baby.position.z = Math.max(-bound, Math.min(bound, newZ));
+    baby.position.y = getGroundHeight(baby.position.x, baby.position.z);
+    baby.userData.baseY = baby.position.y;
+
+    // Re-add ring
+    const ringGeo = new THREE.RingGeometry(0.6, 0.75, 24);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xFFFF88, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.15;
+    baby.add(ring);
+    baby.userData.ring = ring;
+  }
+}
+
 function animateUncollectedBabies(delta) {
   babies.forEach(baby => {
     if (baby.userData.collected) return;
-    // Gentle bobbing (only bob upward, never below ground)
     const bobOffset = (Math.sin(elapsedTime * BABY_BOB_SPEED + baby.userData.index * 2) + 1) * 0.5 * BABY_BOB_HEIGHT;
     baby.position.y = baby.userData.baseY + bobOffset;
-    // Pulse ring
     const ring = baby.userData.ring;
     if (ring) {
       ring.material.opacity = 0.3 + Math.sin(elapsedTime * 2 + baby.userData.index) * 0.2;
@@ -681,6 +1049,22 @@ function checkCollection() {
   });
 }
 
+function collectBaby(baby) {
+  baby.userData.collected = true;
+  baby.userData.scattered = false;
+  collectedBabies.push(baby);
+  followChain.push(baby);
+
+  if (baby.userData.ring) {
+    baby.remove(baby.userData.ring);
+    baby.userData.ring = null;
+  }
+
+  if (collectedBabies.length === totalBabies) {
+    setTimeout(() => winLevel(), 500);
+  }
+}
+
 function checkTutorialTriggers() {
   if (!tutorialActive || !tutorialWaiting) return;
   const step = tutorialSteps[tutorialStep];
@@ -690,31 +1074,11 @@ function checkTutorialTriggers() {
       Math.pow(player.position.x - playerStartPos.x, 2) +
       Math.pow(player.position.z - playerStartPos.z, 2)
     );
-    if (dist > 2) {
-      playerHasMoved = true;
-      advanceTutorial();
-    }
+    if (dist > 2) { playerHasMoved = true; advanceTutorial(); }
   }
 
   if (step.action === 'collect' && collectedBabies.length >= 1) {
     advanceTutorial();
-  }
-}
-
-function collectBaby(baby) {
-  baby.userData.collected = true;
-  collectedBabies.push(baby);
-  followChain.push(baby);
-
-  // Remove glow ring
-  if (baby.userData.ring) {
-    baby.remove(baby.userData.ring);
-    baby.userData.ring = null;
-  }
-
-  // Check win
-  if (collectedBabies.length === TOTAL_BABIES) {
-    setTimeout(() => winLevel(), 500);
   }
 }
 
@@ -729,7 +1093,6 @@ function updateCamera(delta) {
 
   camera.lookAt(player.position.x, 0, player.position.z);
 
-  // Move shadow light to follow player so shadows never disappear at edges
   dirLight.position.set(player.position.x + 10, 15, player.position.z + 10);
   dirLight.target.position.set(player.position.x, 0, player.position.z);
   dirLight.target.updateMatrixWorld();
@@ -745,7 +1108,7 @@ function updateClouds(delta) {
 }
 
 function updateHUD() {
-  document.getElementById('counter-text').textContent = `${collectedBabies.length} / ${TOTAL_BABIES}`;
+  document.getElementById('counter-text').textContent = `${collectedBabies.length} / ${totalBabies}`;
   const mins = Math.floor(elapsedTime / 60);
   const secs = Math.floor(elapsedTime % 60);
   document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -754,18 +1117,33 @@ function updateHUD() {
 // --- WIN ---
 function winLevel() {
   levelComplete = true;
+  const lvl = LEVELS[currentLevel];
 
-  // Calculate stars
   let stars = 1;
-  if (elapsedTime < 60) stars = 2;
-  if (elapsedTime < 30) stars = 3;
+  if (elapsedTime < lvl.starTimes[0]) stars = 2;
+  if (elapsedTime < lvl.starTimes[1] && scatterCount === 0) stars = 3;
 
   const starsText = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
   document.getElementById('stars-display').textContent = starsText;
 
   const mins = Math.floor(elapsedTime / 60);
   const secs = Math.floor(elapsedTime % 60);
-  document.getElementById('complete-stats').innerHTML = `Time: ${mins}:${secs.toString().padStart(2, '0')}<br>Babies Found: ${TOTAL_BABIES} / ${TOTAL_BABIES}`;
+  let statsHtml = `Time: ${mins}:${secs.toString().padStart(2, '0')}<br>Babies Found: ${totalBabies} / ${totalBabies}`;
+  if (scatterCount > 0) statsHtml += `<br>Times Scattered: ${scatterCount}`;
+  document.getElementById('complete-stats').innerHTML = statsHtml;
+
+  // Save progress
+  if (!saveData.stars[lvl.id] || stars > saveData.stars[lvl.id]) {
+    saveData.stars[lvl.id] = stars;
+  }
+  if (currentLevel + 2 > saveData.unlockedLevel && currentLevel + 1 < LEVELS.length) {
+    saveData.unlockedLevel = currentLevel + 2;
+  }
+  save();
+
+  // Show/hide next level button
+  const nextBtn = document.getElementById('next-level-btn');
+  nextBtn.style.display = (currentLevel + 1 < LEVELS.length) ? 'inline-block' : 'none';
 
   document.getElementById('level-complete').style.display = 'flex';
 }
@@ -780,10 +1158,7 @@ function startTutorial() {
 }
 
 function showTutorialStep() {
-  if (tutorialStep >= tutorialSteps.length) {
-    endTutorial();
-    return;
-  }
+  if (tutorialStep >= tutorialSteps.length) { endTutorial(); return; }
   const step = tutorialSteps[tutorialStep];
   document.getElementById('tutorial-text').textContent = step.text;
   document.getElementById('tutorial-step').textContent = `${tutorialStep + 1} / ${tutorialSteps.length}`;
@@ -798,75 +1173,42 @@ function showTutorialStep() {
     tutorialWaiting = true;
   }
 
-  // Re-trigger animation
   const box = document.getElementById('tutorial-box');
   box.style.animation = 'none';
-  box.offsetHeight; // reflow
+  box.offsetHeight;
   box.style.animation = 'tutorialIn 0.3s ease-out';
 }
 
-function advanceTutorial() {
-  tutorialStep++;
-  showTutorialStep();
-}
-
+function advanceTutorial() { tutorialStep++; showTutorialStep(); }
 function endTutorial() {
   tutorialActive = false;
   tutorialWaiting = false;
   document.getElementById('tutorial-overlay').style.display = 'none';
 }
 
-// Track if player has moved (for tutorial "move" step)
-let playerHasMoved = false;
-let playerStartPos = null;
-
-// --- START ---
-function startGame() {
-  document.getElementById('title-screen').style.opacity = '0';
-  setTimeout(() => {
-    document.getElementById('title-screen').style.display = 'none';
-  }, 600);
-  document.getElementById('hud').style.display = 'flex';
-
-  gameStarted = true;
-  clock.start();
-
-  // Start tutorial
-  playerStartPos = player.position.clone();
-  playerHasMoved = false;
-  startTutorial();
-}
-
-function restartGame() {
-  // Reset state
-  levelComplete = false;
+// --- NAVIGATION ---
+function goToMenu() {
   gameStarted = false;
-  elapsedTime = 0;
-  collectedBabies = [];
-  followChain = [];
-  playerHasMoved = false;
-
-  // Remove old babies
-  babies.forEach(b => scene.remove(b));
-  babies = [];
-
-  // Reset player
-  player.position.set(0, getGroundHeight(0, 5), 5);
-  player.rotation.y = 0;
-
-  // Recreate babies
-  createBabies();
-
-  // Hide complete, show title
+  levelComplete = false;
   document.getElementById('level-complete').style.display = 'none';
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('level-name-hud').style.display = 'none';
   document.getElementById('tutorial-overlay').style.display = 'none';
   document.getElementById('title-screen').style.display = 'flex';
   document.getElementById('title-screen').style.opacity = '1';
-  document.getElementById('hud').style.display = 'none';
+  buildLevelButtons();
+}
+
+function nextLevel() {
+  if (currentLevel + 1 < LEVELS.length) {
+    document.getElementById('level-complete').style.display = 'none';
+    loadLevel(currentLevel + 1);
+  }
 }
 
 // --- RESIZE ---
 function onResize() {
+  if (!camera || !renderer) return;
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -874,8 +1216,8 @@ function onResize() {
 }
 
 // --- EVENT LISTENERS ---
-document.getElementById('play-btn').addEventListener('click', startGame);
-document.getElementById('restart-btn').addEventListener('click', restartGame);
+document.getElementById('menu-btn').addEventListener('click', goToMenu);
+document.getElementById('next-level-btn').addEventListener('click', nextLevel);
 document.getElementById('tutorial-next-btn').addEventListener('click', advanceTutorial);
 
 // Start
