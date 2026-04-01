@@ -250,6 +250,8 @@ const GROUND_SIZE = 40;
 const BABY_BOB_SPEED = 3;
 const BABY_BOB_HEIGHT = 0.08;
 const PREDATOR_DETECT_RADIUS = 2.5;
+const PREDATOR_CHASE_RADIUS = 12;
+const PREDATOR_CHASE_SPEED_MULT = 1.5;
 const SCATTER_STUN_TIME = 0.6;
 
 // Save data
@@ -992,6 +994,7 @@ function initPredatorPaths() {
     data._segs = segs;
     data._totalLen = total;
     data._dist = 0;
+    data._targetRotation = 0;
   }
 }
 
@@ -1001,28 +1004,57 @@ function updatePredators(delta) {
     var data = pred.userData;
     data.cooldown = Math.max(0, data.cooldown - delta);
 
-    // Advance distance along path
-    data._dist = (data._dist + data.speed * delta) % data._totalLen;
+    // Check distance to player
+    var dx = player.position.x - pred.position.x;
+    var dz = player.position.z - pred.position.z;
+    var distToPlayer = Math.sqrt(dx * dx + dz * dz);
+    var isChasing = distToPlayer < PREDATOR_CHASE_RADIUS;
 
-    // Find current segment
-    var d = data._dist;
-    var seg = data._segs[0];
-    for (var i = data._segs.length - 1; i >= 0; i--) {
-      if (d >= data._segs[i].cum) { seg = data._segs[i]; break; }
+    var nx, nz, targetRot;
+
+    if (isChasing) {
+      // Chase mode: move toward player at increased speed
+      var speed = data.speed * PREDATOR_CHASE_SPEED_MULT;
+      if (distToPlayer > 0.1) {
+        var moveX = (dx / distToPlayer) * speed * delta;
+        var moveZ = (dz / distToPlayer) * speed * delta;
+        nx = pred.position.x + moveX;
+        nz = pred.position.z + moveZ;
+      } else {
+        nx = pred.position.x;
+        nz = pred.position.z;
+      }
+      targetRot = Math.atan2(dx, dz);
+    } else {
+      // Patrol mode: follow patrol path
+      data._dist = (data._dist + data.speed * delta) % data._totalLen;
+
+      // Find current segment
+      var d = data._dist;
+      var seg = data._segs[0];
+      for (var i = data._segs.length - 1; i >= 0; i--) {
+        if (d >= data._segs[i].cum) { seg = data._segs[i]; break; }
+      }
+
+      // Lerp within segment
+      var t = seg.len > 0 ? (d - seg.cum) / seg.len : 0;
+      nx = seg.sx + (seg.ex - seg.sx) * t;
+      nz = seg.sz + (seg.ez - seg.sz) * t;
+      targetRot = Math.atan2(seg.ex - seg.sx, seg.ez - seg.sz);
     }
 
-    // Lerp within segment
-    var t = seg.len > 0 ? (d - seg.cum) / seg.len : 0;
-    var nx = seg.sx + (seg.ex - seg.sx) * t;
-    var nz = seg.sz + (seg.ez - seg.sz) * t;
-
-    // Set position directly
+    // Update position
     pred.position.x = nx;
     pred.position.z = nz;
     pred.position.y = getGroundHeight(nx, nz);
 
-    // Face direction
-    pred.rotation.y = Math.atan2(seg.ex - seg.sx, seg.ez - seg.sz);
+    // Smooth rotation: lerp toward target
+    data._targetRotation = targetRot;
+    var rotDiff = data._targetRotation - pred.rotation.y;
+    // Normalize angle difference to [-PI, PI]
+    while (rotDiff > Math.PI) rotDiff -= 2 * Math.PI;
+    while (rotDiff < -Math.PI) rotDiff += 2 * Math.PI;
+    pred.rotation.y += rotDiff * Math.min(delta * 4, 1); // Smooth over ~0.25 seconds
 
     // Walk animation
     pred.children[0].rotation.z = Math.sin(elapsedTime * 8) * 0.06;
