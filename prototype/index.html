@@ -991,6 +991,7 @@ function updatePredators(delta) {
       if (playerDist < chaseRadius && playerDist > 0.3) {
         // Chase the player!
         isChasing = true;
+        data.wasChasing = true;
         const nx = pdx / playerDist;
         const nz = pdz / playerDist;
         const moveAmt = chaseSpeed * delta;
@@ -1008,13 +1009,33 @@ function updatePredators(delta) {
 
     // If not chasing, patrol normally
     if (!isChasing) {
-      let moveBudget = data.speed * delta;
+      // After a chase the fox may be far from its route — find nearest waypoint
+      if (data.wasChasing) {
+        let bestDist = Infinity;
+        let bestIdx = data.patrolIndex;
+        for (let i = 0; i < data.patrol.length; i++) {
+          const wp = data.patrol[i];
+          const d = Math.sqrt((wp.x - pred.position.x) ** 2 + (wp.z - pred.position.z) ** 2);
+          if (d < bestDist) { bestDist = d; bestIdx = i; }
+        }
+        data.patrolIndex = bestIdx;
+        data.wasChasing = false;
+      }
 
-      while (moveBudget > 0.001) {
+      let moveBudget = data.speed * delta;
+      let safety = 20;
+
+      while (moveBudget > 0.001 && safety-- > 0) {
         const target = data.patrol[data.patrolIndex];
         const dx = target.x - pred.position.x;
         const dz = target.z - pred.position.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
+
+        if (dist < 0.01) {
+          // Already at waypoint, advance
+          data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
+          continue;
+        }
 
         if (dist <= moveBudget) {
           pred.position.x = target.x;
