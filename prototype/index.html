@@ -638,7 +638,10 @@ function createPredators(lvl) {
       patrol: pDef.patrol,
       patrolIndex: 0,
       speed: pDef.speed,
-      cooldown: 0, // prevent rapid re-triggers
+      chaseSpeed: pDef.chaseSpeed || pDef.speed,
+      chaseRadius: pDef.chaseRadius || 0,
+      cooldown: 0,
+      wasChasing: false,
     };
     scene.add(fox);
     predators.push(fox);
@@ -1062,6 +1065,13 @@ function updatePredators(delta) {
     // Ground height
     const groundY = getGroundHeight(pred.position.x, pred.position.z);
     pred.position.y += (groundY - pred.position.y) * 10 * delta;
+
+    // Walking animation — body bob and tail wag
+    const walkSpeed = isChasing ? 14 : 8;
+    pred.children[0].rotation.z = Math.sin(elapsedTime * walkSpeed) * 0.06;
+    // Tail wag (last child of the fox group)
+    const tail = pred.children[pred.children.length - 1];
+    if (tail) tail.rotation.x = Math.sin(elapsedTime * walkSpeed * 1.5) * 0.3;
   });
 }
 
@@ -1110,12 +1120,18 @@ function scatterBabies(predator) {
       z: Math.max(-bound, Math.min(bound, baby.position.z + Math.sin(angle) * scatterDist)),
     };
     baby.userData.scatterSpeed = 8 + Math.random() * 4; // fast run speed
+    baby.userData.scatterImmune = 1.5; // can't be re-collected for 1.5 seconds
   }
 }
 
 function animateUncollectedBabies(delta) {
   babies.forEach(baby => {
     if (baby.userData.collected) return;
+
+    // Tick down scatter immunity
+    if (baby.userData.scatterImmune > 0) {
+      baby.userData.scatterImmune -= delta;
+    }
 
     // If baby is scattering (running to target), animate the run
     if (baby.userData.scatterTarget) {
@@ -1180,6 +1196,8 @@ function animateUncollectedBabies(delta) {
 function checkCollection() {
   babies.forEach(baby => {
     if (baby.userData.collected) return;
+    // Don't re-collect babies that are still scattering away
+    if (baby.userData.scatterTarget || baby.userData.scatterImmune > 0) return;
     const dist = player.position.distanceTo(baby.position);
     if (dist < COLLECT_RADIUS) {
       collectBaby(baby);
