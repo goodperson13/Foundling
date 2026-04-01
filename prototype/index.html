@@ -943,7 +943,11 @@ function init() {
 
   setupInput();
   detectMobile();
-  buildLevelButtons();
+
+  // Show world select screen on startup
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('world-select-screen').style.display = 'flex';
+  buildWorldButtons();
 
   window.addEventListener('resize', onResize);
 
