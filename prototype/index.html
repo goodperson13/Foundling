@@ -183,7 +183,7 @@ const LEVELS = [
       { x: -6, z: 3 }, { x: 4, z: -5 },
     ],
     predators: [
-      { type: 'fox', patrol: [{ x: -5, z: 0 }, { x: 5, z: -5 }, { x: 10, z: 0 }, { x: 5, z: 5 }, { x: -5, z: 5 }], speed: 3.5 }
+      { type: 'fox', patrol: [{ x: -5, z: 0 }, { x: 5, z: -5 }, { x: 10, z: 0 }, { x: 5, z: 5 }, { x: -5, z: 5 }], speed: 2 }
     ],
     flowerCount: 40,
     rockCount: 15,
@@ -938,34 +938,37 @@ function updatePredators(delta) {
     const data = pred.userData;
     data.cooldown = Math.max(0, data.cooldown - delta);
 
-    // Patrol movement
-    const target = data.patrol[data.patrolIndex];
-    const dx = target.x - pred.position.x;
-    const dz = target.z - pred.position.z;
-    const dist = Math.sqrt(dx * dx + dz * dz);
+    // Move along patrol path — use remaining budget so fox never pauses between waypoints
+    let moveBudget = data.speed * delta;
 
-    // Use speed-based threshold so fox doesn't overshoot at high speed
-    const arriveThreshold = data.speed * delta * 2 + 0.3;
+    while (moveBudget > 0.001) {
+      const target = data.patrol[data.patrolIndex];
+      const dx = target.x - pred.position.x;
+      const dz = target.z - pred.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
 
-    if (dist < arriveThreshold) {
-      // Snap to target and advance to next patrol point
-      pred.position.x = target.x;
-      pred.position.z = target.z;
-      data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
-    } else {
-      const nx = dx / dist;
-      const nz = dz / dist;
-      // Don't move further than remaining distance
-      const moveAmt = Math.min(data.speed * delta, dist);
-      pred.position.x += nx * moveAmt;
-      pred.position.z += nz * moveAmt;
+      if (dist <= moveBudget) {
+        // Reach this waypoint and use leftover budget toward next one
+        pred.position.x = target.x;
+        pred.position.z = target.z;
+        moveBudget -= dist;
+        data.patrolIndex = (data.patrolIndex + 1) % data.patrol.length;
+      } else {
+        // Move toward waypoint
+        const nx = dx / dist;
+        const nz = dz / dist;
+        pred.position.x += nx * moveBudget;
+        pred.position.z += nz * moveBudget;
 
-      // Face direction smoothly
-      const angle = Math.atan2(nx, nz);
-      let angleDiff = angle - pred.rotation.y;
-      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-      pred.rotation.y += angleDiff * 6 * delta;
+        // Face direction smoothly
+        const angle = Math.atan2(nx, nz);
+        let angleDiff = angle - pred.rotation.y;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        pred.rotation.y += angleDiff * 6 * delta;
+
+        moveBudget = 0;
+      }
     }
 
     // Ground height
