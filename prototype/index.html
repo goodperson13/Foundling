@@ -161,11 +161,11 @@ const LEVELS = [
     ],
     treePositions: [
       { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 },
-      { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 },
-      { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 },
-      { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 },
-      { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 },
-      { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 },
+      { x: 8, z: -12 }, { x: 14, z: -5 },
+      { x: -6, z: -18 }, { x: 5, z: -16 },
+      { x: 16, z: 2 }, { x: -3, z: 12 },
+      { x: -14, z: 14 }, { x: 15, z: 12 },
+      { x: -18, z: -2 }, { x: 18, z: -10 },
     ],
     bushPositions: [
       { x: -9, z: -6.5 }, { x: -7.5, z: -5.5 },
@@ -173,7 +173,7 @@ const LEVELS = [
       { x: -5, z: -14.5 }, { x: -3.5, z: -13.5 },
     ],
     predators: [],
-    flowerCount: 60,
+    flowerCount: 80,
     rockCount: 12,
     cloudCount: 6,
     tutorial: true,
@@ -200,6 +200,7 @@ const LEVELS = [
       { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 }, { x: -12, z: -16 },
       { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 }, { x: 10, z: -2 },
       { x: -2, z: -10 }, { x: 17, z: 8 }, { x: -17, z: 10 }, { x: 0, z: 16 },
+      { x: 11, z: -4 }, { x: -6, z: 8 }, { x: 4, z: 0 }, { x: -14, z: 6 },
     ],
     bushPositions: [
       { x: -11, z: -8.5 }, { x: -9.5, z: -7.5 },
@@ -228,9 +229,9 @@ const LEVELS = [
     name: "Dark Forest",
     subtitle: "Dense trees ahead",
     totalBabies: 6,
-    skyColor: 0x5A7B8C,
-    fogNear: 20, fogFar: 45,
-    groundColor: 0x3D6E42,
+    skyColor: 0x3D4A5C,
+    fogNear: 18, fogFar: 40,
+    groundColor: 0x2d5a1a,
     treeColors: [0x1A4D1A, 0x2D5C2D, 0x1E5C1E, 0x0D3D0D],
     babyPositions: [
       { x: -14, z: -12 }, { x: 8, z: -10 }, { x: -6, z: 6 },
@@ -245,6 +246,7 @@ const LEVELS = [
       { x: -18, z: 0 }, { x: -14, z: 2 }, { x: -10, z: 0 }, { x: -6, z: 2 },
       { x: -2, z: 0 }, { x: 2, z: 2 }, { x: 6, z: 0 }, { x: 10, z: 2 },
       { x: 14, z: 0 }, { x: 18, z: 2 }, { x: -18, z: 10 }, { x: -14, z: 12 },
+      { x: -10, z: 10 }, { x: -6, z: 12 }, { x: 0, z: 10 }, { x: 4, z: 12 },
     ],
     bushPositions: [
       { x: -16, z: -12 }, { x: -8, z: -14 }, { x: 0, z: -12 },
@@ -252,7 +254,7 @@ const LEVELS = [
       { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
     ],
     predators: [
-      { type: 'fox', patrol: [{ x: -18, z: -18 }, { x: 18, z: -18 }, { x: 18, z: 12 }, { x: -18, z: 12 }], speed: 3.5 }
+      { type: 'wolf', patrol: [{ x: -8, z: -8 }, { x: 8, z: -8 }, { x: 8, z: 8 }, { x: -8, z: 8 }], speed: 3.8 }
     ],
     flowerCount: 25,
     rockCount: 20,
@@ -260,65 +262,60 @@ const LEVELS = [
     tutorial: false,
     starTimes: [120, 60],
     introTips: [
-      { text: "The forest is dark and dense. Watch your step!", type: "info" },
-      { text: "Trees block the way. Navigate carefully around them.", type: "danger" },
-      { text: "A hungry fox patrols the perimeter. Stay in the center.", type: "danger" },
+      { text: "A wolf hunts in this dark forest. Stay away from it!", type: "danger" },
+      { text: "Trees form a dense maze. Navigate carefully around them.", type: "info" },
+      { text: "The wolf patrols the center. Stick to the perimeter.", type: "danger" },
       { text: "Find all 6 babies to complete the level.", type: "goal" },
     ],
   },
   {
     id: 4,
-    name: "Mountain Pass",
-    subtitle: "Winding paths",
+    name: "Mountain Peak",
+    subtitle: "Reach the summit",
     totalBabies: 6,
-    skyColor: 0x6B8FB8,
-    fogNear: 22, fogFar: 50,
-    groundColor: 0x5A8B4F,
+    skyColor: 0x87CEEB,
+    fogNear: 25, fogFar: 55,
+    groundColor: 0x4D9932,
     treeColors: [0x2D7A2D, 0x3A8B3A, 0x247424, 0x1F6B1F],
     babyPositions: [
-      { x: -10, z: -14 }, { x: 6, z: -8 }, { x: -14, z: 4 },
-      { x: 10, z: 10 }, { x: -4, z: 14 }, { x: 12, z: -2 }
+      { x: 0, z: 2 }, { x: 3, z: 1 }, { x: -3, z: 0 }, { x: 2, z: -2 }, { x: -2, z: 3 }, { x: 0, z: -4 }
     ],
     treePositions: [
-      { x: -16, z: -16 }, { x: -12, z: -14 }, { x: -8, z: -16 }, { x: -4, z: -14 },
-      { x: 0, z: -16 }, { x: 4, z: -14 }, { x: 8, z: -16 }, { x: 12, z: -14 },
-      { x: 16, z: -16 }, { x: -14, z: -6 }, { x: -10, z: -4 }, { x: -6, z: -6 },
-      { x: -2, z: -4 }, { x: 2, z: -6 }, { x: 6, z: -4 }, { x: 10, z: -6 },
-      { x: 14, z: -4 }, { x: -16, z: 4 }, { x: -12, z: 6 }, { x: -8, z: 4 },
-      { x: -4, z: 6 }, { x: 0, z: 4 }, { x: 4, z: 6 }, { x: 8, z: 4 },
-      { x: 12, z: 6 }, { x: 16, z: 4 },
+      { x: -16, z: -16 }, { x: 16, z: -16 }, { x: -16, z: 16 }, { x: 16, z: 16 },
+      { x: -14, z: -12 }, { x: 14, z: -12 }, { x: -14, z: 12 }, { x: 14, z: 12 },
+      { x: -12, z: -14 }, { x: 12, z: -14 }, { x: -12, z: 14 }, { x: 12, z: 14 },
+      { x: -10, z: -16 }, { x: 10, z: -16 }, { x: -10, z: 16 }, { x: 10, z: 16 },
+      { x: -18, z: -8 }, { x: 18, z: -8 }, { x: -18, z: 8 }, { x: 18, z: 8 },
     ],
     bushPositions: [
-      { x: -12, z: -12 }, { x: 4, z: -12 }, { x: -10, z: 0 },
-      { x: 8, z: 0 }, { x: -6, z: 8 }, { x: 10, z: 8 },
+      { x: -14, z: -10 }, { x: 14, z: -10 }, { x: -14, z: 10 }, { x: 14, z: 10 },
+      { x: -10, z: -14 }, { x: 10, z: -14 }, { x: -10, z: 14 }, { x: 10, z: 14 },
     ],
     predators: [
-      { type: 'fox', patrol: [{ x: -16, z: -10 }, { x: 0, z: -14 }, { x: 8, z: -6 }, { x: 12, z: 4 }, { x: -8, z: 10 }, { x: -16, z: 2 }], speed: 3.2 }
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 }
     ],
-    flowerCount: 35,
-    rockCount: 18,
-    cloudCount: 4,
+    flowerCount: 30,
+    rockCount: 20,
+    cloudCount: 8,
     tutorial: false,
     starTimes: [120, 60],
     introTips: [
-      { text: "Navigate the winding mountain paths carefully.", type: "info" },
-      { text: "Trees form natural obstacles. Use them to your advantage.", type: "info" },
-      { text: "A fox patrols a complex route through the pass.", type: "danger" },
-      { text: "Find all 6 babies to complete the level.", type: "goal" },
+      { text: "An eagle guards the summit. Avoid its aerial patrol!", type: "danger" },
+      { text: "Your babies are scattered on the mountain slopes.", type: "goal" },
+      { text: "Navigate carefully to reach the peak.", type: "info" },
     ],
   },
   {
     id: 5,
     name: "The Wild",
-    subtitle: "Two foxes, one chance",
+    subtitle: "Dual predators, survival mode",
     totalBabies: 5,
-    skyColor: 0x4A6B7C,
-    fogNear: 18, fogFar: 42,
-    groundColor: 0x2D5C35,
+    skyColor: 0x5C6E7D,
+    fogNear: 20, fogFar: 45,
+    groundColor: 0x3d6b1f,
     treeColors: [0x1A3A1A, 0x2D5C2D, 0x1F4C1F, 0x0D2D0D],
     babyPositions: [
-      { x: -12, z: -10 }, { x: 10, z: -6 }, { x: -8, z: 12 },
-      { x: 14, z: 6 }, { x: 0, z: 14 }
+      { x: -12, z: -10 }, { x: 10, z: -6 }, { x: -8, z: 12 }, { x: 14, z: 6 }, { x: 0, z: 14 }
     ],
     treePositions: [
       { x: -18, z: -16 }, { x: -14, z: -14 }, { x: -10, z: -16 }, { x: -6, z: -14 },
@@ -335,8 +332,8 @@ const LEVELS = [
       { x: 10, z: 2 }, { x: -4, z: 10 }, { x: 14, z: 10 },
     ],
     predators: [
-      { type: 'fox', patrol: [{ x: -16, z: -12 }, { x: 10, z: -10 }, { x: 14, z: 4 }, { x: -12, z: 8 }], speed: 3.5 },
-      { type: 'fox', patrol: [{ x: 12, z: -14 }, { x: -10, z: -6 }, { x: -12, z: 10 }, { x: 8, z: 14 }], speed: 3.5 }
+      { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 3.8 },
+      { type: 'coyote', patrol: [{ x: 10, z: -10 }, { x: -10, z: -10 }, { x: -10, z: 10 }, { x: 10, z: 10 }], speed: 3.2 }
     ],
     flowerCount: 30,
     rockCount: 22,
@@ -344,7 +341,7 @@ const LEVELS = [
     tutorial: false,
     starTimes: [150, 75],
     introTips: [
-      { text: "TWO foxes now patrol this wild territory!", type: "danger" },
+      { text: "A WOLF and COYOTE hunt this wild territory!", type: "danger" },
       { text: "They patrol different routes. Stay alert and avoid both.", type: "danger" },
       { text: "Trees are your cover. Use the forest strategically.", type: "info" },
       { text: "Find all 5 babies to complete the challenge.", type: "goal" },
@@ -522,6 +519,16 @@ function loadLevel(levelIndex) {
 }
 
 // --- GROUND ---
+function createMountain() {
+  const mountainGeo = new THREE.ConeGeometry(12, 8, 32);
+  const mountainMat = new THREE.MeshLambertMaterial({ color: 0x777777 });
+  const mountain = new THREE.Mesh(mountainGeo, mountainMat);
+  const baselineGroundHeight = getGroundHeight(0, 0);
+  mountain.position.set(0, baselineGroundHeight, 0);
+  mountain.castShadow = true;
+  scene.add(mountain);
+}
+
 function createGround(lvl) {
   const groundGeo = new THREE.PlaneGeometry(GROUND_SIZE * 2, GROUND_SIZE * 2, 32, 32);
   const pos = groundGeo.attributes.position;
@@ -537,6 +544,11 @@ function createGround(lvl) {
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
+
+  // Create mountain for Level 4
+  if (lvl.id === 4) {
+    createMountain();
+  }
 }
 
 function getGroundHeight(x, z) {
@@ -663,7 +675,7 @@ function createBabies(lvl) {
 }
 
 // --- FOX PREDATOR ---
-function createFox() {
+function createFoxMesh() {
   const group = new THREE.Group();
 
   // Body
@@ -758,20 +770,285 @@ function createFox() {
   return group;
 }
 
+function createWolfMesh() {
+  const group = new THREE.Group();
+
+  // Body - elongated (1.5x longer)
+  const bodyGeo = new THREE.SphereGeometry(0.45, 10, 8);
+  bodyGeo.scale(1, 0.7, 2.1);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.35;
+  body.castShadow = true;
+  group.add(body);
+
+  // Head
+  const headGeo = new THREE.SphereGeometry(0.22, 8, 6);
+  headGeo.scale(1, 0.9, 1.2);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.set(0, 0.5, 0.7);
+  head.castShadow = true;
+  group.add(head);
+
+  // Snout
+  const snoutGeo = new THREE.ConeGeometry(0.08, 0.25, 6);
+  const snoutMat = new THREE.MeshLambertMaterial({ color: 0x5C5C5C });
+  const snout = new THREE.Mesh(snoutGeo, snoutMat);
+  snout.rotation.x = -Math.PI / 2;
+  snout.position.set(0, 0.45, 0.92);
+  group.add(snout);
+
+  // Nose
+  const noseGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const noseMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  const nose = new THREE.Mesh(noseGeo, noseMat);
+  nose.position.set(0, 0.46, 1.03);
+  group.add(nose);
+
+  // Eyes
+  const eyeGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFDD00 });
+  const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeL.position.set(-0.12, 0.56, 0.78);
+  group.add(eyeL);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.12, 0.56, 0.78);
+  group.add(eyeR);
+
+  // Pupils
+  const pupilGeo = new THREE.SphereGeometry(0.02, 4, 4);
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilL.position.set(-0.12, 0.56, 0.82);
+  group.add(pupilL);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.12, 0.56, 0.82);
+  group.add(pupilR);
+
+  // Ears - taller, thinner
+  const earGeo = new THREE.ConeGeometry(0.06, 0.28, 4);
+  const earMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
+  const earL = new THREE.Mesh(earGeo, earMat);
+  earL.position.set(-0.12, 0.76, 0.62);
+  earL.rotation.z = 0.15;
+  group.add(earL);
+  const earR = new THREE.Mesh(earGeo, earMat);
+  earR.position.set(0.12, 0.76, 0.62);
+  earR.rotation.z = -0.15;
+  group.add(earR);
+
+  // Legs - taller, thinner
+  const legGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.32, 6);
+  const legMat = new THREE.MeshLambertMaterial({ color: 0x3A3A3A });
+  [[-0.15, 0.16, 0.3], [0.15, 0.16, 0.3], [-0.15, 0.16, -0.45], [0.15, 0.16, -0.45]].forEach(p => {
+    const leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.set(p[0], p[1], p[2]);
+    group.add(leg);
+  });
+
+  // Tail - longer and straighter
+  const tailGeo = new THREE.SphereGeometry(0.15, 8, 6);
+  tailGeo.scale(0.5, 0.5, 1.8);
+  const tailMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
+  const tail = new THREE.Mesh(tailGeo, tailMat);
+  tail.position.set(0, 0.35, -0.95);
+  group.add(tail);
+
+  return group;
+}
+
+function createCoyoteMesh() {
+  const group = new THREE.Group();
+
+  // Body - medium size
+  const bodyGeo = new THREE.SphereGeometry(0.45, 10, 8);
+  bodyGeo.scale(1, 0.7, 1.6);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xCC8844 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.35;
+  body.castShadow = true;
+  group.add(body);
+
+  // Head
+  const headGeo = new THREE.SphereGeometry(0.22, 8, 6);
+  headGeo.scale(1, 0.9, 1.2);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0xCC8844 });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.set(0, 0.5, 0.6);
+  head.castShadow = true;
+  group.add(head);
+
+  // Snout
+  const snoutGeo = new THREE.ConeGeometry(0.08, 0.25, 6);
+  const snoutMat = new THREE.MeshLambertMaterial({ color: 0xDD9955 });
+  const snout = new THREE.Mesh(snoutGeo, snoutMat);
+  snout.rotation.x = -Math.PI / 2;
+  snout.position.set(0, 0.45, 0.82);
+  group.add(snout);
+
+  // Nose
+  const noseGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const noseMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  const nose = new THREE.Mesh(noseGeo, noseMat);
+  nose.position.set(0, 0.46, 0.93);
+  group.add(nose);
+
+  // Eyes
+  const eyeGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFDD00 });
+  const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeL.position.set(-0.12, 0.56, 0.68);
+  group.add(eyeL);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.12, 0.56, 0.68);
+  group.add(eyeR);
+
+  // Pupils
+  const pupilGeo = new THREE.SphereGeometry(0.02, 4, 4);
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilL.position.set(-0.12, 0.56, 0.72);
+  group.add(pupilL);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.12, 0.56, 0.72);
+  group.add(pupilR);
+
+  // Ears - large and pointed
+  const earGeo = new THREE.ConeGeometry(0.1, 0.24, 4);
+  const earMat = new THREE.MeshLambertMaterial({ color: 0xCC8844 });
+  const earL = new THREE.Mesh(earGeo, earMat);
+  earL.position.set(-0.14, 0.74, 0.50);
+  earL.rotation.z = 0.15;
+  group.add(earL);
+  const earR = new THREE.Mesh(earGeo, earMat);
+  earR.position.set(0.14, 0.74, 0.50);
+  earR.rotation.z = -0.15;
+  group.add(earR);
+
+  // Legs
+  const legGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.28, 6);
+  const legMat = new THREE.MeshLambertMaterial({ color: 0xBB7733 });
+  [[-0.15, 0.14, 0.25], [0.15, 0.14, 0.25], [-0.15, 0.14, -0.35], [0.15, 0.14, -0.35]].forEach(p => {
+    const leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.set(p[0], p[1], p[2]);
+    group.add(leg);
+  });
+
+  // Tail - thicker
+  const tailGeo = new THREE.SphereGeometry(0.18, 8, 6);
+  tailGeo.scale(0.7, 0.7, 1.4);
+  const tailMat = new THREE.MeshLambertMaterial({ color: 0xCC8844 });
+  const tail = new THREE.Mesh(tailGeo, tailMat);
+  tail.position.set(0, 0.35, -0.75);
+  group.add(tail);
+
+  return group;
+}
+
+function createEagleMesh() {
+  const group = new THREE.Group();
+
+  // Body - compact sphere
+  const bodyGeo = new THREE.SphereGeometry(0.35, 10, 8);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x8B6F47 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.35;
+  body.castShadow = true;
+  group.add(body);
+
+  // Head - smaller sphere
+  const headGeo = new THREE.SphereGeometry(0.18, 8, 6);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0x8B6F47 });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.set(0, 0.42, 0.35);
+  head.castShadow = true;
+  group.add(head);
+
+  // Beak - hooked cone
+  const beakGeo = new THREE.ConeGeometry(0.06, 0.2, 6);
+  const beakMat = new THREE.MeshLambertMaterial({ color: 0xDD9944 });
+  const beak = new THREE.Mesh(beakGeo, beakMat);
+  beak.rotation.x = -Math.PI / 2;
+  beak.rotation.z = Math.PI * 0.15;
+  beak.position.set(0, 0.38, 0.52);
+  group.add(beak);
+
+  // Eyes - golden
+  const eyeGeo = new THREE.SphereGeometry(0.035, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFDD00 });
+  const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeL.position.set(-0.1, 0.46, 0.42);
+  group.add(eyeL);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.1, 0.46, 0.42);
+  group.add(eyeR);
+
+  // Pupils
+  const pupilGeo = new THREE.SphereGeometry(0.015, 4, 4);
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilL.position.set(-0.1, 0.46, 0.455);
+  group.add(pupilL);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.1, 0.46, 0.455);
+  group.add(pupilR);
+
+  // Wings - large scaled spheres
+  const wingGeo = new THREE.SphereGeometry(0.3, 8, 6);
+  wingGeo.scale(0.4, 1.0, 0.6);
+  const wingMat = new THREE.MeshLambertMaterial({ color: 0x6B5638 });
+  const wingL = new THREE.Mesh(wingGeo, wingMat);
+  wingL.position.set(-0.35, 0.35, 0.25);
+  group.add(wingL);
+  const wingR = new THREE.Mesh(wingGeo, wingMat);
+  wingR.position.set(0.35, 0.35, 0.25);
+  group.add(wingR);
+
+  // Talons - small cones below body
+  const talonGeo = new THREE.ConeGeometry(0.03, 0.15, 4);
+  const talonMat = new THREE.MeshLambertMaterial({ color: 0xDDA000 });
+  [[-0.1, 0.05, 0.25], [0.1, 0.05, 0.25]].forEach(p => {
+    const talon = new THREE.Mesh(talonGeo, talonMat);
+    talon.position.set(p[0], p[1], p[2]);
+    group.add(talon);
+  });
+
+  // Apply 0.9x scale to entire group
+  group.scale.set(0.9, 0.9, 0.9);
+
+  return group;
+}
+
+function createPredator(type) {
+  switch (type) {
+    case 'fox':
+      return createFoxMesh();
+    case 'wolf':
+      return createWolfMesh();
+    case 'coyote':
+      return createCoyoteMesh();
+    case 'eagle':
+      return createEagleMesh();
+    default:
+      return createFoxMesh();
+  }
+}
+
 function createPredators(lvl) {
   lvl.predators.forEach(pDef => {
-    const fox = createFox();
+    const predatorMesh = createPredator(pDef.type);
     const startPos = pDef.patrol[0];
-    fox.position.set(startPos.x, getGroundHeight(startPos.x, startPos.z), startPos.z);
-    fox.userData = {
+    predatorMesh.position.set(startPos.x, getGroundHeight(startPos.x, startPos.z), startPos.z);
+    predatorMesh.userData = {
       type: pDef.type,
       patrol: pDef.patrol,
       patrolIndex: 0,
       speed: pDef.speed,
       cooldown: 0,
     };
-    scene.add(fox);
-    predators.push(fox);
+    scene.add(predatorMesh);
+    predators.push(predatorMesh);
   });
 }
 
@@ -1217,6 +1494,15 @@ function updatePredators(delta) {
       pred.position.z = nz;
     }
     pred.position.y = getGroundHeight(nx, nz);
+
+    // Eagle-specific: add bobbing altitude behavior
+    if (data.type === 'eagle') {
+      const baseHeight = getGroundHeight(nx, nz);
+      const bobOffset = Math.sin(elapsedTime * 2) * 0.3;
+      const eagleAltitude = baseHeight + 2.0 + bobOffset;
+      // Constrain altitude between ground + 2.0 and ground + 3.5
+      pred.position.y = Math.max(baseHeight + 2.0, Math.min(baseHeight + 3.5, eagleAltitude));
+    }
 
     // Smooth rotation: lerp toward target
     var rotDiff = targetRot - pred.rotation.y;
