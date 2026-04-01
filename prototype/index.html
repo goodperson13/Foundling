@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Foundling - Prototype</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; touch-action: none; }
+canvas { display: block; }
+
+/* HUD */
+#hud { position: fixed; top: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 10; }
+#baby-counter { background: rgba(0,0,0,0.5); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+#baby-counter .icon { font-size: 22px; }
+#timer { background: rgba(0,0,0,0.5); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 18px; }
+#hint { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 15px; z-index: 10; pointer-events: none; transition: opacity 0.5s; }
+
+/* Mobile Controls */
+#mobile-controls { position: fixed; bottom: 20px; left: 20px; z-index: 20; display: none; }
+.d-pad { width: 150px; height: 150px; position: relative; }
+.d-btn { position: absolute; width: 50px; height: 50px; background: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.5); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; user-select: none; -webkit-user-select: none; cursor: pointer; }
+.d-btn:active, .d-btn.active { background: rgba(255,255,255,0.55); }
+.d-btn.up { top: 0; left: 50px; }
+.d-btn.down { bottom: 0; left: 50px; }
+.d-btn.left { top: 50px; left: 0; }
+.d-btn.right { top: 50px; right: 0; }
+
+/* Title Screen */
+#title-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #2d5016 0%, #4a7c59 40%, #7ab648 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.6s; }
+#title-screen h1 { font-size: clamp(48px, 10vw, 80px); color: #fff; text-shadow: 3px 3px 6px rgba(0,0,0,0.4); margin-bottom: 8px; letter-spacing: 4px; }
+#title-screen .tagline { font-size: clamp(14px, 3vw, 20px); color: rgba(255,255,255,0.85); margin-bottom: 40px; font-style: italic; }
+#play-btn { background: #fff; color: #2d5016; border: none; padding: 16px 48px; font-size: 22px; font-weight: bold; border-radius: 40px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+#play-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+#title-screen .level-label { margin-top: 16px; color: rgba(255,255,255,0.7); font-size: 14px; }
+
+/* Level Complete */
+#level-complete { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+#level-complete .card { background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; }
+#level-complete .card h2 { font-size: 32px; color: #2d5016; margin-bottom: 8px; }
+#level-complete .card .subtitle { color: #666; margin-bottom: 20px; font-size: 16px; }
+#level-complete .stars { font-size: 40px; margin-bottom: 20px; }
+#level-complete .stats { color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 24px; }
+#level-complete .restart-btn { background: #4a7c59; color: #fff; border: none; padding: 14px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: transform 0.2s; }
+#level-complete .restart-btn:hover { transform: scale(1.05); }
+
+/* Tutorial */
+#tutorial-overlay { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 80px; z-index: 50; pointer-events: none; }
+.tutorial-box { background: rgba(0,0,0,0.75); color: #fff; padding: 18px 28px 14px; border-radius: 16px; max-width: 460px; width: 90%; text-align: center; pointer-events: auto; animation: tutorialIn 0.3s ease-out; }
+.tutorial-box p { font-size: 17px; line-height: 1.5; margin-bottom: 12px; }
+.tutorial-footer { display: flex; justify-content: space-between; align-items: center; }
+.tutorial-step { font-size: 12px; color: rgba(255,255,255,0.5); }
+#tutorial-next-btn { background: #4a7c59; color: #fff; border: none; padding: 8px 24px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: transform 0.15s; }
+#tutorial-next-btn:hover { transform: scale(1.05); }
+@keyframes tutorialIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- Title Screen -->
+<div id="title-screen">
+  <h1>FOUNDLING</h1>
+  <p class="tagline">Find your babies. Protect your family.</p>
+  <button id="play-btn">PLAY</button>
+  <p class="level-label">Level 1 — Spring Meadow</p>
+</div>
+
+<!-- HUD -->
+<div id="hud" style="display:none;">
+  <div id="baby-counter"><span class="icon">🐣</span> <span id="counter-text">0 / 3</span></div>
+  <div id="timer">0:00</div>
+</div>
+<div id="tutorial-overlay" style="display:none;">
+  <div class="tutorial-box" id="tutorial-box">
+    <p id="tutorial-text"></p>
+    <div class="tutorial-footer">
+      <span id="tutorial-step" class="tutorial-step"></span>
+      <button id="tutorial-next-btn">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Controls -->
+<div id="mobile-controls">
+  <div class="d-pad">
+    <div class="d-btn up" data-dir="up">▲</div>
+    <div class="d-btn down" data-dir="down">▼</div>
+    <div class="d-btn left" data-dir="left">◀</div>
+    <div class="d-btn right" data-dir="right">▶</div>
+  </div>
+</div>
+
+<!-- Level Complete -->
+<div id="level-complete">
+  <div class="card">
+    <h2>All Found!</h2>
+    <p class="subtitle">Your babies are safe!</p>
+    <div class="stars" id="stars-display">⭐⭐⭐</div>
+    <div class="stats" id="complete-stats"></div>
+    <button class="restart-btn" id="restart-btn">Play Again</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// FOUNDLING — Level 1 Prototype: Spring Meadow
+// ============================================================
+
+// --- GLOBALS ---
+let scene, camera, renderer, clock, dirLight;
+let player, playerGroup;
+let babies = [];
+let collectedBabies = [];
+let followChain = [];
+let trees = [];
+let flowers = [];
+let gameStarted = false;
+let levelComplete = false;
+let elapsedTime = 0;
+const TOTAL_BABIES = 3;
+const PLAYER_SPEED = 6;
+const FOLLOW_DISTANCE = 1.2;
+const COLLECT_RADIUS = 1.5;
+const GROUND_SIZE = 40;
+const BABY_BOB_SPEED = 3;
+const BABY_BOB_HEIGHT = 0.08;
+
+// Tutorial
+let tutorialStep = 0;
+let tutorialActive = false;
+let tutorialWaiting = false; // waiting for player action
+const tutorialSteps = [
+  { text: "Welcome to Foundling! You are a parent duck. Your babies have wandered off!", action: "click" },
+  { text: "Use WASD or Arrow Keys to move around. Try walking forward now!", action: "move" },
+  { text: "Great job! See those little ducklings with glowing rings? Walk up to one to collect it.", action: "collect" },
+  { text: "Your baby is now following you! Find the rest to complete the level. Good luck!", action: "click" },
+];
+
+// Input
+const keys = { w: false, a: false, s: false, d: false, up: false, down: false, left: false, right: false };
+const mobileInput = { x: 0, z: 0 };
+
+// --- INIT ---
+function init() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87CEEB);
+  scene.fog = new THREE.Fog(0x87CEEB, 30, 60);
+  clock = new THREE.Clock();
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 12, 12);
+  camera.lookAt(0, 0, 0);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap; // sharper shadows
+  document.body.appendChild(renderer.domElement);
+
+  // Lights
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+
+  dirLight = new THREE.DirectionalLight(0xfff4e0, 0.9);
+  dirLight.position.set(10, 15, 10);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.set(4096, 4096); // 4x higher resolution
+  dirLight.shadow.camera.near = 0.5;
+  dirLight.shadow.camera.far = 80;
+  dirLight.shadow.camera.left = -45;
+  dirLight.shadow.camera.right = 45;
+  dirLight.shadow.camera.top = 45;
+  dirLight.shadow.camera.bottom = -45;
+  dirLight.shadow.bias = -0.001; // reduce shadow acne
+  scene.add(dirLight);
+
+  createGround();
+  createPlayer();
+  createBabies();
+  createEnvironment();
+  setupInput();
+  detectMobile();
+
+  window.addEventListener('resize', onResize);
+  animate();
+}
+
+// --- GROUND ---
+function createGround() {
+  // Main ground
+  const groundGeo = new THREE.PlaneGeometry(GROUND_SIZE * 2, GROUND_SIZE * 2, 32, 32);
+  // Add gentle hills
+  const pos = groundGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const height = Math.sin(x * 0.15) * Math.cos(y * 0.15) * 0.6 + Math.sin(x * 0.3 + 1) * 0.3;
+    pos.setZ(i, height);
+  }
+  groundGeo.computeVertexNormals();
+
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x5daa3a });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // (no dirt path for tutorial level - keep it clean)
+}
+
+// --- PLAYER (Duck) ---
+function createDuckBody(color, scale = 1) {
+  const group = new THREE.Group();
+
+  // Body
+  const bodyGeo = new THREE.SphereGeometry(0.5 * scale, 12, 10);
+  bodyGeo.scale(1, 0.8, 1.2);
+  const bodyMat = new THREE.MeshLambertMaterial({ color });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.4 * scale;
+  body.castShadow = true;
+  group.add(body);
+
+  // Head
+  const headGeo = new THREE.SphereGeometry(0.3 * scale, 10, 8);
+  const headMat = new THREE.MeshLambertMaterial({ color });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.set(0, 0.75 * scale, 0.35 * scale);
+  head.castShadow = true;
+  group.add(head);
+
+  // Beak
+  const beakGeo = new THREE.ConeGeometry(0.1 * scale, 0.25 * scale, 6);
+  const beakMat = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
+  const beak = new THREE.Mesh(beakGeo, beakMat);
+  beak.rotation.x = -Math.PI / 2;
+  beak.position.set(0, 0.72 * scale, 0.6 * scale);
+  group.add(beak);
+
+  // Eyes
+  const eyeGeo = new THREE.SphereGeometry(0.05 * scale, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeL.position.set(-0.15 * scale, 0.82 * scale, 0.52 * scale);
+  group.add(eyeL);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.15 * scale, 0.82 * scale, 0.52 * scale);
+  group.add(eyeR);
+
+  // Tail feathers
+  const tailGeo = new THREE.ConeGeometry(0.15 * scale, 0.3 * scale, 6);
+  const tailMat = new THREE.MeshLambertMaterial({ color });
+  const tail = new THREE.Mesh(tailGeo, tailMat);
+  tail.rotation.x = Math.PI * 0.6;
+  tail.position.set(0, 0.55 * scale, -0.55 * scale);
+  group.add(tail);
+
+  // Legs (visible cylindrical legs)
+  const legMat = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
+  const legGeo = new THREE.CylinderGeometry(0.04 * scale, 0.04 * scale, 0.25 * scale, 6);
+  const legL = new THREE.Mesh(legGeo, legMat);
+  legL.position.set(-0.13 * scale, 0.12 * scale, 0.05 * scale);
+  group.add(legL);
+  const legR = new THREE.Mesh(legGeo, legMat);
+  legR.position.set(0.13 * scale, 0.12 * scale, 0.05 * scale);
+  group.add(legR);
+
+  // Feet (flat paddles at bottom of legs)
+  const footGeo = new THREE.BoxGeometry(0.18 * scale, 0.04 * scale, 0.22 * scale);
+  const footMat = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
+  const footL = new THREE.Mesh(footGeo, footMat);
+  footL.position.set(-0.13 * scale, 0.02, 0.1 * scale);
+  group.add(footL);
+  const footR = new THREE.Mesh(footGeo, footMat);
+  footR.position.set(0.13 * scale, 0.02, 0.1 * scale);
+  group.add(footR);
+
+  // Wings (larger, more duck-like)
+  const wingGeo = new THREE.SphereGeometry(0.45 * scale, 8, 6);
+  wingGeo.scale(0.35, 0.65, 1.2);
+  const darkerColor = new THREE.Color(color).multiplyScalar(0.82);
+  const wingMat = new THREE.MeshLambertMaterial({ color: darkerColor });
+  const wingL = new THREE.Mesh(wingGeo, wingMat);
+  wingL.position.set(-0.3 * scale, 0.4 * scale, -0.1 * scale);
+  wingL.rotation.z = 0.2;
+  wingL.rotation.y = 0.1;
+  wingL.castShadow = true;
+  group.add(wingL);
+  const wingR = new THREE.Mesh(wingGeo.clone(), wingMat);
+  wingR.position.set(0.3 * scale, 0.4 * scale, -0.1 * scale);
+  wingR.rotation.z = -0.2;
+  wingR.rotation.y = -0.1;
+  wingR.castShadow = true;
+  group.add(wingR);
+
+  return group;
+}
+
+function createPlayer() {
+  playerGroup = new THREE.Group();
+  const duck = createDuckBody(0xF5D442, 1);
+  playerGroup.add(duck);
+  playerGroup.position.set(0, getGroundHeight(0, 5), 5);
+  scene.add(playerGroup);
+  player = playerGroup;
+}
+
+// --- BABIES ---
+function createBabies() {
+  const positions = [
+    { x: -6, z: -4 },
+    { x: 12, z: 6 },
+    { x: -2, z: -16 },
+  ];
+
+  positions.forEach((pos, i) => {
+    const babyGroup = new THREE.Group();
+    const duck = createDuckBody(0xFFE87C, 0.55);
+    babyGroup.add(duck);
+    const spawnY = getGroundHeight(pos.x, pos.z);
+    babyGroup.position.set(pos.x, spawnY, pos.z);
+
+    // Add a gentle glow / indicator ring so babies are findable
+    const ringGeo = new THREE.RingGeometry(0.6, 0.75, 24);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xFFFF88, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.15;
+    babyGroup.add(ring);
+    babyGroup.userData = { ring, collected: false, index: i, baseY: spawnY };
+
+    scene.add(babyGroup);
+    babies.push(babyGroup);
+  });
+}
+
+// --- ENVIRONMENT ---
+function createEnvironment() {
+  // Trees
+  const treePositions = [
+    { x: -12, z: -10 }, { x: -15, z: 2 }, { x: -10, z: 8 },
+    { x: 8, z: -12 }, { x: 14, z: -5 }, { x: 12, z: 8 },
+    { x: -6, z: -18 }, { x: 5, z: -16 }, { x: -16, z: -8 },
+    { x: 16, z: 2 }, { x: -3, z: 12 }, { x: 7, z: 14 },
+    { x: -14, z: 14 }, { x: 15, z: 12 }, { x: 0, z: -20 },
+    { x: -18, z: -2 }, { x: 18, z: -10 }, { x: -8, z: 16 },
+  ];
+
+  treePositions.forEach(pos => {
+    const tree = createTree(pos.x, pos.z);
+    scene.add(tree);
+    trees.push(tree);
+  });
+
+  // Flowers scattered
+  for (let i = 0; i < 60; i++) {
+    const x = (Math.random() - 0.5) * GROUND_SIZE * 1.5;
+    const z = (Math.random() - 0.5) * GROUND_SIZE * 1.5;
+    // Don't place flowers on the path
+    if (Math.abs(x) < 2 && z > -12 && z < 8) continue;
+    const flower = createFlower(x, z);
+    scene.add(flower);
+    flowers.push(flower);
+  }
+
+  // Rocks
+  for (let i = 0; i < 12; i++) {
+    const x = (Math.random() - 0.5) * GROUND_SIZE * 1.4;
+    const z = (Math.random() - 0.5) * GROUND_SIZE * 1.4;
+    const rock = createRock(x, z);
+    scene.add(rock);
+  }
+
+  // Bushes near baby hiding spots
+  const bushPositions = [
+    { x: -9, z: -6.5 }, { x: -7.5, z: -5.5 },
+    { x: 11, z: 3.5 }, { x: 9.5, z: 2.5 },
+    { x: -5, z: -14.5 }, { x: -3.5, z: -13.5 },
+  ];
+  bushPositions.forEach(pos => {
+    const bush = createBush(pos.x, pos.z);
+    scene.add(bush);
+  });
+
+  // Clouds
+  for (let i = 0; i < 6; i++) {
+    const cloud = createCloud();
+    cloud.position.set(
+      (Math.random() - 0.5) * 50,
+      12 + Math.random() * 5,
+      (Math.random() - 0.5) * 50
+    );
+    cloud.userData = { speed: 0.2 + Math.random() * 0.3 };
+    scene.add(cloud);
+  }
+}
+
+function createTree(x, z) {
+  const group = new THREE.Group();
+  const height = 1.5 + Math.random() * 1;
+  const trunkGeo = new THREE.CylinderGeometry(0.15, 0.25, height, 8);
+  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8B5E3C });
+  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  trunk.position.y = height / 2;
+  trunk.castShadow = true;
+  group.add(trunk);
+
+  const leavesSize = 1 + Math.random() * 0.8;
+  const leavesGeo = new THREE.SphereGeometry(leavesSize, 8, 6);
+  const green = [0x2E8B28, 0x3DA33D, 0x4DBF4D, 0x228B22][Math.floor(Math.random() * 4)];
+  const leavesMat = new THREE.MeshLambertMaterial({ color: green });
+  const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+  leaves.position.y = height + leavesSize * 0.6;
+  leaves.castShadow = true;
+  group.add(leaves);
+
+  // Second leaf cluster
+  const leaves2Geo = new THREE.SphereGeometry(leavesSize * 0.7, 8, 6);
+  const leaves2 = new THREE.Mesh(leaves2Geo, leavesMat);
+  leaves2.position.set(leavesSize * 0.4, height + leavesSize * 0.3, 0);
+  leaves2.castShadow = true;
+  group.add(leaves2);
+
+  group.position.set(x, 0, z);
+  return group;
+}
+
+function createFlower(x, z) {
+  const group = new THREE.Group();
+  const stemGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 4);
+  const stemMat = new THREE.MeshLambertMaterial({ color: 0x3A7D2C });
+  const stem = new THREE.Mesh(stemGeo, stemMat);
+  stem.position.y = 0.15;
+  group.add(stem);
+
+  const petalColors = [0xFF6B9D, 0xFFB347, 0xFF69B4, 0xDA70D6, 0xFFD700, 0xFF4444, 0x87CEEB];
+  const petalColor = petalColors[Math.floor(Math.random() * petalColors.length)];
+  const petalGeo = new THREE.SphereGeometry(0.08, 6, 4);
+  const petalMat = new THREE.MeshLambertMaterial({ color: petalColor });
+  for (let i = 0; i < 5; i++) {
+    const petal = new THREE.Mesh(petalGeo, petalMat);
+    const angle = (i / 5) * Math.PI * 2;
+    petal.position.set(Math.cos(angle) * 0.06, 0.32, Math.sin(angle) * 0.06);
+    group.add(petal);
+  }
+  // Center
+  const centerGeo = new THREE.SphereGeometry(0.05, 6, 4);
+  const centerMat = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+  const center = new THREE.Mesh(centerGeo, centerMat);
+  center.position.y = 0.32;
+  group.add(center);
+
+  group.position.set(x, 0, z);
+  group.scale.setScalar(0.8 + Math.random() * 0.6);
+  return group;
+}
+
+function createRock(x, z) {
+  const geo = new THREE.DodecahedronGeometry(0.3 + Math.random() * 0.4, 0);
+  const mat = new THREE.MeshLambertMaterial({ color: 0x888888 });
+  const rock = new THREE.Mesh(geo, mat);
+  rock.position.set(x, 0.15, z);
+  rock.rotation.set(Math.random(), Math.random(), Math.random());
+  rock.scale.y = 0.6;
+  rock.castShadow = true;
+  return rock;
+}
+
+function createBush(x, z) {
+  const group = new THREE.Group();
+  const sizes = [0.5, 0.4, 0.35];
+  sizes.forEach((s, i) => {
+    const geo = new THREE.SphereGeometry(s, 8, 6);
+    geo.scale(1, 0.7, 1); // flatten vertically so they look like bushes not spheres
+    const mat = new THREE.MeshLambertMaterial({ color: i === 0 ? 0x2D7D2D : 0x3A9D3A });
+    const sphere = new THREE.Mesh(geo, mat);
+    sphere.position.set((i - 1) * 0.35, s * 0.35, (i % 2) * 0.2);
+    sphere.castShadow = true;
+    group.add(sphere);
+  });
+  const groundY = getGroundHeight(x, z);
+  group.position.set(x, groundY, z);
+  return group;
+}
+
+function createCloud() {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.85 });
+  for (let i = 0; i < 5; i++) {
+    const geo = new THREE.SphereGeometry(1 + Math.random() * 0.8, 8, 6);
+    const puff = new THREE.Mesh(geo, mat);
+    puff.position.set((i - 2) * 1.2, Math.random() * 0.4, Math.random() * 0.5);
+    puff.scale.y = 0.5;
+    group.add(puff);
+  }
+  return group;
+}
+
+// --- GROUND HEIGHT ---
+// Matches the height formula used in createGround()
+function getGroundHeight(x, z) {
+  return Math.sin(x * 0.15) * Math.cos(z * 0.15) * 0.6 + Math.sin(x * 0.3 + 1) * 0.3;
+}
+
+// --- INPUT ---
+function setupInput() {
+  document.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    if (key === 'w' || key === 'arrowup') keys.w = true;
+    if (key === 's' || key === 'arrowdown') keys.s = true;
+    if (key === 'a' || key === 'arrowleft') keys.a = true;
+    if (key === 'd' || key === 'arrowright') keys.d = true;
+  });
+  document.addEventListener('keyup', (e) => {
+    const key = e.key.toLowerCase();
+    if (key === 'w' || key === 'arrowup') keys.w = false;
+    if (key === 's' || key === 'arrowdown') keys.s = false;
+    if (key === 'a' || key === 'arrowleft') keys.a = false;
+    if (key === 'd' || key === 'arrowright') keys.d = false;
+  });
+
+  // Mobile d-pad
+  const btns = document.querySelectorAll('.d-btn');
+  btns.forEach(btn => {
+    const dir = btn.dataset.dir;
+    const onStart = (e) => { e.preventDefault(); btn.classList.add('active'); setMobileDir(dir, true); };
+    const onEnd = (e) => { e.preventDefault(); btn.classList.remove('active'); setMobileDir(dir, false); };
+    btn.addEventListener('touchstart', onStart, { passive: false });
+    btn.addEventListener('touchend', onEnd, { passive: false });
+    btn.addEventListener('touchcancel', onEnd, { passive: false });
+    btn.addEventListener('mousedown', onStart);
+    btn.addEventListener('mouseup', onEnd);
+    btn.addEventListener('mouseleave', onEnd);
+  });
+}
+
+function setMobileDir(dir, active) {
+  const v = active ? 1 : 0;
+  if (dir === 'up') mobileInput.z = active ? -1 : 0;
+  if (dir === 'down') mobileInput.z = active ? 1 : 0;
+  if (dir === 'left') mobileInput.x = active ? -1 : 0;
+  if (dir === 'right') mobileInput.x = active ? 1 : 0;
+}
+
+function detectMobile() {
+  const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry/i.test(navigator.userAgent) || window.innerWidth < 768;
+  document.getElementById('mobile-controls').style.display = isMobile ? 'block' : 'none';
+}
+
+// --- GAME LOOP ---
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+
+  if (gameStarted && !levelComplete) {
+    elapsedTime += delta;
+    updatePlayer(delta);
+    updateBabies(delta);
+    checkCollection();
+    updateCamera(delta);
+    updateHUD();
+    updateClouds(delta);
+    animateUncollectedBabies(delta);
+    checkTutorialTriggers();
+  }
+
+  renderer.render(scene, camera);
+}
+
+function updatePlayer(delta) {
+  let dx = 0, dz = 0;
+  if (keys.w) dz -= 1;
+  if (keys.s) dz += 1;
+  if (keys.a) dx -= 1;
+  if (keys.d) dz -= 0; // just for key handling
+  if (keys.a) dx = -1;
+  if (keys.d) dx = 1;
+
+  // Mobile
+  dx += mobileInput.x;
+  dz += mobileInput.z;
+
+  if (dx !== 0 || dz !== 0) {
+    const len = Math.sqrt(dx * dx + dz * dz);
+    dx /= len;
+    dz /= len;
+
+    player.position.x += dx * PLAYER_SPEED * delta;
+    player.position.z += dz * PLAYER_SPEED * delta;
+
+    // Clamp to bounds
+    const bound = GROUND_SIZE * 0.8;
+    player.position.x = Math.max(-bound, Math.min(bound, player.position.x));
+    player.position.z = Math.max(-bound, Math.min(bound, player.position.z));
+
+    // Stay on ground
+    const targetY = getGroundHeight(player.position.x, player.position.z);
+    player.position.y += (targetY - player.position.y) * 10 * delta;
+
+    // Face movement direction
+    const targetAngle = Math.atan2(dx, dz);
+    let currentAngle = player.rotation.y;
+    let angleDiff = targetAngle - currentAngle;
+    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+    player.rotation.y += angleDiff * 8 * delta;
+
+    // Waddle animation
+    player.children[0].rotation.z = Math.sin(elapsedTime * 10) * 0.1;
+  }
+}
+
+function updateBabies(delta) {
+  // Update following chain
+  if (followChain.length === 0) return;
+
+  let leader = player;
+  for (let i = 0; i < followChain.length; i++) {
+    const baby = followChain[i];
+
+    // Calculate horizontal distance only (ignore Y)
+    const dx = leader.position.x - baby.position.x;
+    const dz = leader.position.z - baby.position.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist > FOLLOW_DISTANCE) {
+      // Smooth lerp toward leader — faster when further away
+      const lerpSpeed = Math.min(8, 3 + (dist - FOLLOW_DISTANCE) * 4);
+      baby.position.x += dx * lerpSpeed * delta;
+      baby.position.z += dz * lerpSpeed * delta;
+    }
+
+    // Always lock Y to ground height (never go underground)
+    const groundY = getGroundHeight(baby.position.x, baby.position.z);
+    baby.position.y += (groundY - baby.position.y) * 10 * delta;
+
+    // Smoothly face leader
+    if (dist > 0.1) {
+      const angle = Math.atan2(dx, dz);
+      let angleDiff = angle - baby.rotation.y;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      baby.rotation.y += angleDiff * 8 * delta;
+    }
+
+    // Waddle when moving
+    if (dist > FOLLOW_DISTANCE * 0.5) {
+      baby.children[0].rotation.z = Math.sin(elapsedTime * 12 + i * 2) * 0.12;
+    } else {
+      baby.children[0].rotation.z *= 0.9; // ease back to upright
+    }
+
+    leader = baby;
+  }
+}
+
+function animateUncollectedBabies(delta) {
+  babies.forEach(baby => {
+    if (baby.userData.collected) return;
+    // Gentle bobbing (only bob upward, never below ground)
+    const bobOffset = (Math.sin(elapsedTime * BABY_BOB_SPEED + baby.userData.index * 2) + 1) * 0.5 * BABY_BOB_HEIGHT;
+    baby.position.y = baby.userData.baseY + bobOffset;
+    // Pulse ring
+    const ring = baby.userData.ring;
+    if (ring) {
+      ring.material.opacity = 0.3 + Math.sin(elapsedTime * 2 + baby.userData.index) * 0.2;
+      ring.rotation.z = elapsedTime * 0.5;
+    }
+  });
+}
+
+function checkCollection() {
+  babies.forEach(baby => {
+    if (baby.userData.collected) return;
+    const dist = player.position.distanceTo(baby.position);
+    if (dist < COLLECT_RADIUS) {
+      collectBaby(baby);
+    }
+  });
+}
+
+function checkTutorialTriggers() {
+  if (!tutorialActive || !tutorialWaiting) return;
+  const step = tutorialSteps[tutorialStep];
+
+  if (step.action === 'move' && playerStartPos) {
+    const dist = Math.sqrt(
+      Math.pow(player.position.x - playerStartPos.x, 2) +
+      Math.pow(player.position.z - playerStartPos.z, 2)
+    );
+    if (dist > 2) {
+      playerHasMoved = true;
+      advanceTutorial();
+    }
+  }
+
+  if (step.action === 'collect' && collectedBabies.length >= 1) {
+    advanceTutorial();
+  }
+}
+
+function collectBaby(baby) {
+  baby.userData.collected = true;
+  collectedBabies.push(baby);
+  followChain.push(baby);
+
+  // Remove glow ring
+  if (baby.userData.ring) {
+    baby.remove(baby.userData.ring);
+    baby.userData.ring = null;
+  }
+
+  // Check win
+  if (collectedBabies.length === TOTAL_BABIES) {
+    setTimeout(() => winLevel(), 500);
+  }
+}
+
+function updateCamera(delta) {
+  const targetX = player.position.x;
+  const targetZ = player.position.z + 12;
+  const targetY = 12;
+
+  camera.position.x += (targetX - camera.position.x) * 3 * delta;
+  camera.position.y += (targetY - camera.position.y) * 3 * delta;
+  camera.position.z += (targetZ - camera.position.z) * 3 * delta;
+
+  camera.lookAt(player.position.x, 0, player.position.z);
+
+  // Move shadow light to follow player so shadows never disappear at edges
+  dirLight.position.set(player.position.x + 10, 15, player.position.z + 10);
+  dirLight.target.position.set(player.position.x, 0, player.position.z);
+  dirLight.target.updateMatrixWorld();
+}
+
+function updateClouds(delta) {
+  scene.children.forEach(obj => {
+    if (obj.userData && obj.userData.speed) {
+      obj.position.x += obj.userData.speed * delta;
+      if (obj.position.x > 30) obj.position.x = -30;
+    }
+  });
+}
+
+function updateHUD() {
+  document.getElementById('counter-text').textContent = `${collectedBabies.length} / ${TOTAL_BABIES}`;
+  const mins = Math.floor(elapsedTime / 60);
+  const secs = Math.floor(elapsedTime % 60);
+  document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// --- WIN ---
+function winLevel() {
+  levelComplete = true;
+
+  // Calculate stars
+  let stars = 1;
+  if (elapsedTime < 60) stars = 2;
+  if (elapsedTime < 30) stars = 3;
+
+  const starsText = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  document.getElementById('stars-display').textContent = starsText;
+
+  const mins = Math.floor(elapsedTime / 60);
+  const secs = Math.floor(elapsedTime % 60);
+  document.getElementById('complete-stats').innerHTML = `Time: ${mins}:${secs.toString().padStart(2, '0')}<br>Babies Found: ${TOTAL_BABIES} / ${TOTAL_BABIES}`;
+
+  document.getElementById('level-complete').style.display = 'flex';
+}
+
+// --- TUTORIAL ---
+function startTutorial() {
+  tutorialStep = 0;
+  tutorialActive = true;
+  tutorialWaiting = false;
+  document.getElementById('tutorial-overlay').style.display = 'flex';
+  showTutorialStep();
+}
+
+function showTutorialStep() {
+  if (tutorialStep >= tutorialSteps.length) {
+    endTutorial();
+    return;
+  }
+  const step = tutorialSteps[tutorialStep];
+  document.getElementById('tutorial-text').textContent = step.text;
+  document.getElementById('tutorial-step').textContent = `${tutorialStep + 1} / ${tutorialSteps.length}`;
+
+  const btn = document.getElementById('tutorial-next-btn');
+  if (step.action === 'click') {
+    btn.style.display = 'inline-block';
+    btn.textContent = tutorialStep === tutorialSteps.length - 1 ? "Let's go!" : 'Next';
+    tutorialWaiting = false;
+  } else {
+    btn.style.display = 'none';
+    tutorialWaiting = true;
+  }
+
+  // Re-trigger animation
+  const box = document.getElementById('tutorial-box');
+  box.style.animation = 'none';
+  box.offsetHeight; // reflow
+  box.style.animation = 'tutorialIn 0.3s ease-out';
+}
+
+function advanceTutorial() {
+  tutorialStep++;
+  showTutorialStep();
+}
+
+function endTutorial() {
+  tutorialActive = false;
+  tutorialWaiting = false;
+  document.getElementById('tutorial-overlay').style.display = 'none';
+}
+
+// Track if player has moved (for tutorial "move" step)
+let playerHasMoved = false;
+let playerStartPos = null;
+
+// --- START ---
+function startGame() {
+  document.getElementById('title-screen').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('title-screen').style.display = 'none';
+  }, 600);
+  document.getElementById('hud').style.display = 'flex';
+
+  gameStarted = true;
+  clock.start();
+
+  // Start tutorial
+  playerStartPos = player.position.clone();
+  playerHasMoved = false;
+  startTutorial();
+}
+
+function restartGame() {
+  // Reset state
+  levelComplete = false;
+  gameStarted = false;
+  elapsedTime = 0;
+  collectedBabies = [];
+  followChain = [];
+  playerHasMoved = false;
+
+  // Remove old babies
+  babies.forEach(b => scene.remove(b));
+  babies = [];
+
+  // Reset player
+  player.position.set(0, getGroundHeight(0, 5), 5);
+  player.rotation.y = 0;
+
+  // Recreate babies
+  createBabies();
+
+  // Hide complete, show title
+  document.getElementById('level-complete').style.display = 'none';
+  document.getElementById('tutorial-overlay').style.display = 'none';
+  document.getElementById('title-screen').style.display = 'flex';
+  document.getElementById('title-screen').style.opacity = '1';
+  document.getElementById('hud').style.display = 'none';
+}
+
+// --- RESIZE ---
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  detectMobile();
+}
+
+// --- EVENT LISTENERS ---
+document.getElementById('play-btn').addEventListener('click', startGame);
+document.getElementById('restart-btn').addEventListener('click', restartGame);
+document.getElementById('tutorial-next-btn').addEventListener('click', advanceTutorial);
+
+// Start
+init();
+</script>
+</body>
+</html>
