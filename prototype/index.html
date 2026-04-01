@@ -1851,10 +1851,11 @@ function buildWorldButtons() {
     const completedLevels = levelsInWorld.filter(lvl => saveData.stars[lvl.id]).length;
     const progress = levelsInWorld.length > 0 ? (completedLevels / levelsInWorld.length) * 100 : 0;
 
+    const isLocked = !isWorldUnlocked(world.id);
     card.innerHTML = `
-      <div class="world-icon">${world.icon}</div>
+      <div class="world-icon">${isLocked ? '🔒' : world.icon}</div>
       <div class="world-name">${world.displayName}</div>
-      <div class="world-description">${world.description}</div>
+      <div class="world-description">${isLocked ? 'Complete the previous world to unlock' : world.description}</div>
       <div class="world-progress-bar">
         <div class="world-progress-fill" style="width: ${progress}%"></div>
       </div>
