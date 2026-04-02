@@ -48,10 +48,8 @@ canvas { display: block; }
 .world-card:hover:not(.locked):not(.coming-soon) { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.6); }
 .world-card.locked { opacity: 0.5; cursor: not-allowed; }
 .world-card.locked:hover { transform: none; }
-.world-card.coming-soon { opacity: 1; cursor: not-allowed; border-color: rgba(255,200,100,0.4); background: rgba(255,200,100,0.05); }
+.world-card.coming-soon { opacity: 0.6; cursor: not-allowed; border-color: rgba(255,200,100,0.4); background: rgba(255,200,100,0.05); }
 .world-card.coming-soon:hover { transform: none; }
-.world-card.coming-soon .world-icon { opacity: 0.5; }
-.world-card.coming-soon .world-description { opacity: 0.6; }
 .world-icon { font-size: 48px; margin-bottom: 12px; }
 .world-name { font-size: 22px; color: #fff; font-weight: bold; margin-bottom: 8px; }
 .world-description { font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 16px; line-height: 1.4; }
@@ -1900,7 +1898,7 @@ function buildWorldButtons() {
     card.innerHTML = `
       ${labelHTML}
       <div class="world-icon">${icon}</div>
-      <div class="world-name">${world.displayName}</div>
+      ${!isComingSoon ? `<div class="world-name">${world.displayName}</div>` : ''}
       <div class="world-description">${description}</div>
       ${!isComingSoon ? `
         <div class="world-progress-bar">
