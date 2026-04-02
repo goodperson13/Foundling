@@ -318,9 +318,9 @@ const LEVELS = [
     name: "Mountain Peak",
     subtitle: "Reach the summit",
     totalBabies: 6,
-    skyColor: 0x87CEEB,
+    skyColor: 0xB0E0E6,
     fogNear: 25, fogFar: 55,
-    groundColor: 0x4D9932,
+    groundColor: 0xE8F4F8,
     treeColors: [0x2D7A2D, 0x3A8B3A, 0x247424, 0x1F6B1F],
     babyPositions: [
       { x: 0, z: 2 }, { x: 3, z: 1 }, { x: -3, z: 0 }, { x: 2, z: -2 }, { x: -2, z: 3 }, { x: 0, z: -4 }
@@ -1059,7 +1059,7 @@ function loadLevel(levelIndex) {
 // --- GROUND ---
 function createMountain() {
   const mountainGeo = new THREE.ConeGeometry(12, 8, 32);
-  const mountainMat = new THREE.MeshLambertMaterial({ color: 0x777777 });
+  const mountainMat = new THREE.MeshLambertMaterial({ color: 0xF5F5F5 });
   const mountain = new THREE.Mesh(mountainGeo, mountainMat);
   const baselineGroundHeight = getGroundHeight(0, 0);
   mountain.position.set(0, baselineGroundHeight, 0);
