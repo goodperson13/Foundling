@@ -429,7 +429,8 @@ const LEVELS = [
       { x: 12, z: 0 }, { x: -16, z: 8 }, { x: 4, z: 8 },
     ],
     predators: [
-      { type: 'wolf', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: -10, z: -4 }, { x: 10, z: 4 }], speed: 3.2 }
+      { type: 'wolf', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: -10, z: -4 }, { x: 10, z: 4 }], speed: 3.2 },
+      { type: 'snowy_owl', patrol: [{ x: -10, z: -10 }, { x: 10, z: -8 }, { x: 12, z: 6 }, { x: -12, z: 8 }], speed: 3.8 }
     ],
     flowerCount: 30,
     rockCount: 18,
@@ -437,7 +438,7 @@ const LEVELS = [
     tutorial: false,
     starTimes: [100, 50],
     introTips: [
-      { text: "A wolf prowls through this denser forest. Stay vigilant!", type: "danger" },
+      { text: "A wolf prowls through this denser forest while a snowy owl circles overhead.", type: "danger" },
       { text: "More trees mean more places to hide and more obstacles to navigate.", type: "info" },
       { text: "Find all 5 babies to complete this level.", type: "goal" },
     ],
@@ -474,7 +475,8 @@ const LEVELS = [
       { x: -6, z: 3 }, { x: 4, z: -5 },
     ],
     predators: [
-      { type: 'wolf', patrol: [{ x: -6, z: -6 }, { x: 6, z: -6 }, { x: 8, z: 0 }, { x: 6, z: 6 }, { x: -6, z: 6 }, { x: -8, z: 0 }], speed: 3.4 }
+      { type: 'wolf', patrol: [{ x: -6, z: -6 }, { x: 6, z: -6 }, { x: 8, z: 0 }, { x: 6, z: 6 }, { x: -6, z: 6 }, { x: -8, z: 0 }], speed: 3.4 },
+      { type: 'snowy_owl', patrol: [{ x: -8, z: -4 }, { x: 8, z: -6 }, { x: 10, z: 4 }, { x: -10, z: 6 }], speed: 4.0 }
     ],
     flowerCount: 20,
     rockCount: 16,
@@ -482,7 +484,7 @@ const LEVELS = [
     tutorial: false,
     starTimes: [90, 45],
     introTips: [
-      { text: "The forest grows darker as twilight falls. A wolf hunts in the shadows.", type: "danger" },
+      { text: "The forest grows darker as twilight falls. A wolf hunts in the shadows while a snowy owl watches from above.", type: "danger" },
       { text: "Navigate carefully through the dimly-lit groves.", type: "info" },
       { text: "Find all 4 babies to complete this level.", type: "goal" },
     ],
@@ -522,7 +524,8 @@ const LEVELS = [
       { x: 10, z: 6 }, { x: -14, z: 10 },
     ],
     predators: [
-      { type: 'wolf', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: -10, z: -4 }, { x: 10, z: 4 }, { x: 0, z: 10 }, { x: 0, z: -10 }], speed: 3.5 }
+      { type: 'wolf', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }, { x: -10, z: -4 }, { x: 10, z: 4 }, { x: 0, z: 10 }, { x: 0, z: -10 }], speed: 3.5 },
+      { type: 'snowy_owl', patrol: [{ x: -12, z: -6 }, { x: 12, z: -8 }, { x: 14, z: 8 }, { x: -14, z: 10 }, { x: -6, z: 4 }], speed: 4.1 }
     ],
     flowerCount: 15,
     rockCount: 24,
@@ -530,7 +533,7 @@ const LEVELS = [
     tutorial: false,
     starTimes: [110, 55],
     introTips: [
-      { text: "You've reached the deepest, darkest part of the forest. A wolf hunts relentlessly.", type: "danger" },
+      { text: "You've reached the deepest, darkest part of the forest. A wolf hunts relentlessly while a snowy owl soars above.", type: "danger" },
       { text: "Maximum trees, minimal light, and nowhere to hide for long.", type: "danger" },
       { text: "Find all 6 babies to escape this nightmare.", type: "goal" },
     ],
@@ -561,7 +564,8 @@ const LEVELS = [
       { x: 7, z: -14.5 }, { x: 9, z: -13.5 },
     ],
     predators: [
-      { type: 'snowy_owl', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 }
+      { type: 'snowy_owl', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
+      { type: 'wolf', patrol: [{ x: -12, z: -12 }, { x: 12, z: -10 }, { x: 14, z: 8 }, { x: -14, z: 10 }], speed: 3.6 }
     ],
     flowerCount: 25,
     rockCount: 18,
@@ -569,7 +573,7 @@ const LEVELS = [
     tutorial: false,
     starTimes: [100, 50],
     introTips: [
-      { text: "Welcome to the Mountain Realm! A snowy owl patrols the foothill paths.", type: "danger" },
+      { text: "Welcome to the Mountain Realm! A snowy owl patrols the foothill paths while a wolf roams the slopes.", type: "danger" },
       { text: "The terrain is higher, the air crisper, and predators fiercer.", type: "info" },
       { text: "Find all 4 babies to advance further up the mountain.", type: "goal" },
     ],
@@ -602,8 +606,8 @@ const LEVELS = [
       { x: 7, z: -14.5 }, { x: 9, z: -13.5 },
     ],
     predators: [
-      { type: 'snowy_owl', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
-      { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 4.0 }
+      { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 4.0 },
+      { type: 'snowy_owl', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 }
     ],
     flowerCount: 20,
     rockCount: 20,
