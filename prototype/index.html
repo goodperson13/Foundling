@@ -1890,15 +1890,9 @@ function buildWorldButtons() {
       description = 'Complete the previous world to unlock';
     }
 
-    let labelHTML = '';
-    if (isComingSoon) {
-      labelHTML = '<div class="coming-soon-label">Coming Soon</div>';
-    }
-
     card.innerHTML = `
-      ${labelHTML}
       <div class="world-icon">${icon}</div>
-      ${!isComingSoon ? `<div class="world-name">${world.displayName}</div>` : ''}
+      <div class="world-name">${isComingSoon ? 'Coming Soon' : world.displayName}</div>
       <div class="world-description">${description}</div>
       ${!isComingSoon ? `
         <div class="world-progress-bar">
