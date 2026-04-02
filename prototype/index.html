@@ -836,7 +836,7 @@ const WORLDS = [
     description: "Master the lush forests and learn to evade the cunning fox.",
     icon: "🌲",
     backgroundColor: "#2d5016",
-    levelIds: [1, 2, 6, 7, 8],
+    levelIds: [1, 2, 3, 4, 5],
     unlockedByDefault: true,
     requiredPreviousWorld: null,
   },
@@ -847,7 +847,7 @@ const WORLDS = [
     description: "Navigate the peaks where eagles soar and wolves prowl.",
     icon: "⛰️",
     backgroundColor: "#4a6b8a",
-    levelIds: [4, 9, 10, 11, 12],
+    levelIds: [6, 7, 8, 9, 10],
     unlockedByDefault: false,
     requiredPreviousWorld: 1,
   },
@@ -858,7 +858,7 @@ const WORLDS = [
     description: "More worlds coming in future updates",
     icon: "🦁",
     backgroundColor: "#3d4a5c",
-    levelIds: [3, 13, 5, 14, 15],
+    levelIds: [11, 12, 13, 14, 15],
     unlockedByDefault: false,
     requiredPreviousWorld: 2,
     comingSoon: true,
@@ -967,7 +967,8 @@ function buildLevelButtons() {
     const btn = document.createElement('button');
     btn.className = 'level-btn' + (i + 1 > saveData.unlockedLevel ? ' locked' : '');
     const starsText = saveData.stars[lvl.id] ? '⭐'.repeat(saveData.stars[lvl.id]) + '☆'.repeat(3 - saveData.stars[lvl.id]) : '';
-    btn.innerHTML = `Level ${lvl.id} — ${lvl.name}` + (starsText ? `<span class="stars-preview">${starsText}</span>` : '');
+    const displayName = getLevelDisplayName(lvl.id);
+    btn.innerHTML = `${displayName} — ${lvl.name}` + (starsText ? `<span class="stars-preview">${starsText}</span>` : '');
     if (i + 1 <= saveData.unlockedLevel) {
       btn.addEventListener('click', () => loadLevel(i));
     }
@@ -1035,7 +1036,8 @@ function loadLevel(levelIndex) {
   setTimeout(() => { document.getElementById('title-screen').style.display = 'none'; }, 600);
   document.getElementById('hud').style.display = 'flex';
   document.getElementById('level-name-hud').style.display = 'block';
-  document.getElementById('level-name-hud').textContent = `Level ${lvl.id} — ${lvl.name}`;
+  const displayName = getLevelDisplayName(lvl.id);
+  document.getElementById('level-name-hud').textContent = `${displayName} — ${lvl.name}`;
   document.getElementById('level-complete').style.display = 'none';
 
   clock.start();
@@ -1845,6 +1847,17 @@ function getCurrentWorldIdForLevel(levelId) {
   return 1;
 }
 
+function getLevelDisplayName(levelId) {
+  const level = LEVELS.find(l => l.id === levelId);
+  if (!level) return `Level ${levelId}`;
+  const worldId = getCurrentWorldIdForLevel(levelId);
+  const world = WORLDS.find(w => w.id === worldId);
+  if (!world) return `Level ${levelId} — ${level.name}`;
+  const levelIndex = world.levelIds.indexOf(levelId);
+  const levelNumber = levelIndex + 1;
+  return `${worldId}-${levelNumber}`;
+}
+
 // --- UI BUILDERS ---
 function buildWorldButtons() {
   const container = document.getElementById('worlds-container');
@@ -1907,7 +1920,8 @@ function buildLevelGrid(worldId) {
     btn.className = 'level-select-btn';
 
     const starsText = saveData.stars[lvl.id] ? '⭐'.repeat(saveData.stars[lvl.id]) + '☆'.repeat(3 - saveData.stars[lvl.id]) : '☆☆☆';
-    btn.innerHTML = `Level ${lvl.id}<br><span style="font-size:12px">${starsText}</span>`;
+    const displayName = getLevelDisplayName(lvl.id);
+    btn.innerHTML = `${displayName}<br><span style="font-size:12px">${starsText}</span>`;
 
     btn.addEventListener('click', () => {
       document.getElementById('level-select-screen').style.display = 'none';
@@ -1925,7 +1939,8 @@ function buildLevelButtons() {
     const btn = document.createElement('button');
     btn.className = 'level-btn' + (i + 1 > saveData.unlockedLevel ? ' locked' : '');
     const starsText = saveData.stars[lvl.id] ? '⭐'.repeat(saveData.stars[lvl.id]) + '☆'.repeat(3 - saveData.stars[lvl.id]) : '';
-    btn.innerHTML = `Level ${lvl.id} — ${lvl.name}` + (starsText ? `<span class="stars-preview">${starsText}</span>` : '');
+    const displayName = getLevelDisplayName(lvl.id);
+    btn.innerHTML = `${displayName} — ${lvl.name}` + (starsText ? `<span class="stars-preview">${starsText}</span>` : '');
     if (i + 1 <= saveData.unlockedLevel) {
       btn.addEventListener('click', () => loadLevel(i));
     }
