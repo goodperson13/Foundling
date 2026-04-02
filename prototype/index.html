@@ -56,6 +56,7 @@ canvas { display: block; }
 .world-progress-bar { background: rgba(255,255,255,0.2); height: 6px; border-radius: 3px; overflow: hidden; }
 .world-progress-fill { background: #4a7c59; height: 100%; transition: width 0.3s; }
 .world-progress-text { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px; }
+.coming-soon-label { font-size: 14px; color: #ffb347; font-weight: bold; margin-bottom: 12px; font-style: italic; background: rgba(255, 179, 71, 0.15); padding: 6px 12px; border-radius: 20px; display: inline-block; }
 
 /* Level Select Screen */
 #level-select-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1a3a2d 0%, #2d5016 50%, #4a7c59 100%); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 40px 20px; overflow-y: auto; }
@@ -854,7 +855,7 @@ const WORLDS = [
   {
     id: 3,
     name: "Wilderness Realm",
-    displayName: "Coming Soon",
+    displayName: "Untamed Territory",
     description: "More worlds coming in future updates",
     icon: "🦁",
     backgroundColor: "#3d4a5c",
@@ -1889,7 +1890,13 @@ function buildWorldButtons() {
       description = 'Complete the previous world to unlock';
     }
 
+    let labelHTML = '';
+    if (isComingSoon) {
+      labelHTML = '<div class="coming-soon-label">🔜 Coming Soon</div>';
+    }
+
     card.innerHTML = `
+      ${labelHTML}
       <div class="world-icon">${icon}</div>
       <div class="world-name">${world.displayName}</div>
       <div class="world-description">${description}</div>
