@@ -44,7 +44,7 @@ canvas { display: block; }
 #world-select-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1a3a2d 0%, #2d5016 50%, #4a7c59 100%); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; overflow-y: auto; padding: 40px 20px; }
 #world-select-screen h2 { font-size: 36px; color: #fff; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
 .worlds-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; }
-.world-card { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; }
+.world-card { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .world-card:hover:not(.locked):not(.coming-soon) { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.6); }
 .world-card.locked { opacity: 0.5; cursor: not-allowed; }
 .world-card.locked:hover { transform: none; }
