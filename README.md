@@ -1,1 +1,1 @@
-Important: Go to https://goodperson13.github.io/Foundling/prototype/ to play the game.
+If you want to play the game go to https://goodperson13.github.io/Foundling/prototype/
