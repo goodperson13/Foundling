@@ -1900,10 +1900,12 @@ function buildWorldButtons() {
       <div class="world-icon">${icon}</div>
       <div class="world-name">${world.displayName}</div>
       <div class="world-description">${description}</div>
-      <div class="world-progress-bar">
-        <div class="world-progress-fill" style="width: ${progress}%"></div>
-      </div>
-      ${!isComingSoon ? `<div class="world-progress-text">${completedLevels}/${levelsInWorld.length} levels</div>` : ''}
+      ${!isComingSoon ? `
+        <div class="world-progress-bar">
+          <div class="world-progress-fill" style="width: ${progress}%"></div>
+        </div>
+        <div class="world-progress-text">${completedLevels}/${levelsInWorld.length} levels</div>
+      ` : ''}
     `;
 
     if (!isComingSoon && isWorldUnlocked(world.id)) {
