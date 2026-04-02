@@ -45,9 +45,11 @@ canvas { display: block; }
 #world-select-screen h2 { font-size: 36px; color: #fff; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
 .worlds-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; }
 .world-card { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; }
-.world-card:hover:not(.locked) { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.6); }
+.world-card:hover:not(.locked):not(.coming-soon) { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.6); }
 .world-card.locked { opacity: 0.5; cursor: not-allowed; }
 .world-card.locked:hover { transform: none; }
+.world-card.coming-soon { opacity: 0.6; cursor: not-allowed; border-color: rgba(255,200,100,0.4); background: rgba(255,200,100,0.05); }
+.world-card.coming-soon:hover { transform: none; }
 .world-icon { font-size: 48px; margin-bottom: 12px; }
 .world-name { font-size: 22px; color: #fff; font-weight: bold; margin-bottom: 8px; }
 .world-description { font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 16px; line-height: 1.4; }
@@ -830,7 +832,7 @@ const WORLDS = [
   {
     id: 1,
     name: "Forest Realm",
-    displayName: "The Forest Realm",
+    displayName: "Forest",
     description: "Master the lush forests and learn to evade the cunning fox.",
     icon: "🌲",
     backgroundColor: "#2d5016",
@@ -841,7 +843,7 @@ const WORLDS = [
   {
     id: 2,
     name: "Mountain Realm",
-    displayName: "The Mountain Realm",
+    displayName: "Mountain",
     description: "Navigate the peaks where eagles soar and wolves prowl.",
     icon: "⛰️",
     backgroundColor: "#4a6b8a",
@@ -852,13 +854,14 @@ const WORLDS = [
   {
     id: 3,
     name: "Wilderness Realm",
-    displayName: "The Wild Wilderness",
-    description: "Survive the ultimate challenge with three predators.",
+    displayName: "Coming Soon",
+    description: "More worlds coming in future updates",
     icon: "🦁",
     backgroundColor: "#3d4a5c",
     levelIds: [3, 13, 5, 14, 15],
     unlockedByDefault: false,
     requiredPreviousWorld: 2,
+    comingSoon: true,
   },
 ];
 
@@ -1849,24 +1852,41 @@ function buildWorldButtons() {
   WORLDS.forEach(world => {
     const card = document.createElement('div');
     card.className = 'world-card';
-    if (!isWorldUnlocked(world.id)) card.classList.add('locked');
+
+    const isComingSoon = world.comingSoon;
+    const isLocked = !isWorldUnlocked(world.id);
+
+    if (isComingSoon) {
+      card.classList.add('coming-soon');
+    } else if (isLocked) {
+      card.classList.add('locked');
+    }
 
     const levelsInWorld = getLevelsForWorld(world.id);
     const completedLevels = levelsInWorld.filter(lvl => saveData.stars[lvl.id]).length;
     const progress = levelsInWorld.length > 0 ? (completedLevels / levelsInWorld.length) * 100 : 0;
 
-    const isLocked = !isWorldUnlocked(world.id);
+    let icon = world.icon;
+    let description = world.description;
+
+    if (isComingSoon) {
+      icon = '🔜';
+    } else if (isLocked) {
+      icon = '🔒';
+      description = 'Complete the previous world to unlock';
+    }
+
     card.innerHTML = `
-      <div class="world-icon">${isLocked ? '🔒' : world.icon}</div>
+      <div class="world-icon">${icon}</div>
       <div class="world-name">${world.displayName}</div>
-      <div class="world-description">${isLocked ? 'Complete the previous world to unlock' : world.description}</div>
+      <div class="world-description">${description}</div>
       <div class="world-progress-bar">
         <div class="world-progress-fill" style="width: ${progress}%"></div>
       </div>
       <div class="world-progress-text">${completedLevels}/${levelsInWorld.length} levels</div>
     `;
 
-    if (isWorldUnlocked(world.id)) {
+    if (!isComingSoon && isWorldUnlocked(world.id)) {
       card.addEventListener('click', () => showLevelSelect(world.id));
     }
 
