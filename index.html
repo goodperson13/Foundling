@@ -302,7 +302,7 @@ const LEVELS = [
     ],
     predators: [
       { type: 'fox', patrol: [{ x: -8, z: 6 }, { x: 6, z: 8 }, { x: 8, z: -6 }, { x: -6, z: -8 }], speed: 3.0 },
-      { type: 'eagle', patrol: [{ x: 10, z: -10 }, { x: -10, z: -8 }, { x: -12, z: 10 }, { x: 12, z: 12 }], speed: 2.5 }
+      { type: 'eagle', patrol: [{ x: 8, z: 8 }, { x: -8, z: -8 }, { x: 8, z: -8 }, { x: -8, z: 8 }], speed: 3.8 }
     ],
     flowerCount: 25,
     rockCount: 20,
@@ -310,9 +310,9 @@ const LEVELS = [
     tutorial: false,
     starTimes: [150, 75],
     introTips: [
-      { text: "A FOX and EAGLE prowl this dark forest. Stay away from both!", type: "danger" },
+      { text: "A FOX and WOLF prowl this dark forest. Stay away from both!", type: "danger" },
       { text: "Trees form a dense maze. Navigate carefully around them.", type: "info" },
-      { text: "The eagle circles above while the fox hunts on the ground.", type: "danger" },
+      { text: "The wolf patrols the center while the fox circles the edges.", type: "danger" },
       { text: "Find all 6 babies to complete the level.", type: "goal" },
     ],
   },
@@ -340,7 +340,7 @@ const LEVELS = [
       { x: -10, z: -14 }, { x: 10, z: -14 }, { x: -10, z: 14 }, { x: 10, z: 14 },
     ],
     predators: [
-      { type: 'eagle', patrol: [{ x: 12, z: 10 }, { x: -10, z: 8 }, { x: -8, z: -10 }, { x: 10, z: -12 }], speed: 2.6 },
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
       { type: 'fox', patrol: [{ x: 0, z: 8 }, { x: 8, z: 0 }, { x: 0, z: -8 }, { x: -8, z: 0 }], speed: 3.0 }
     ],
     flowerCount: 30,
@@ -382,7 +382,7 @@ const LEVELS = [
     ],
     predators: [
       { type: 'fox', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 3.8 },
-      { type: 'eagle', patrol: [{ x: 12, z: 10 }, { x: -12, z: 8 }, { x: -10, z: -12 }, { x: 14, z: -10 }], speed: 2.5 },
+      { type: 'eagle', patrol: [{ x: 10, z: -10 }, { x: -10, z: -10 }, { x: -10, z: 10 }, { x: 10, z: 10 }], speed: 3.2 },
       { type: 'fox', patrol: [{ x: 6, z: 6 }, { x: -6, z: -6 }, { x: 6, z: -6 }, { x: -6, z: 6 }], speed: 3.0 }
     ],
     flowerCount: 30,
@@ -647,7 +647,7 @@ const LEVELS = [
       { x: -4, z: -18.5 }, { x: -2, z: -17.5 },
     ],
     predators: [
-      { type: 'eagle', patrol: [{ x: 12, z: 8 }, { x: -10, z: 10 }, { x: -8, z: -8 }, { x: 10, z: -10 }], speed: 2.6 },
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
       { type: 'wolf', patrol: [{ x: -10, z: -10 }, { x: 10, z: -10 }, { x: 10, z: 10 }, { x: -10, z: 10 }], speed: 3.8 }
     ],
     flowerCount: 18,
@@ -686,7 +686,7 @@ const LEVELS = [
       { x: -10, z: -14 }, { x: 10, z: -14 }, { x: -10, z: 14 }, { x: 10, z: 14 },
     ],
     predators: [
-      { type: 'eagle', patrol: [{ x: 10, z: 6 }, { x: -8, z: 8 }, { x: -6, z: -6 }, { x: 8, z: -8 }], speed: 2.7 },
+      { type: 'eagle', patrol: [{ x: 6, z: 4 }, { x: -6, z: 4 }, { x: -6, z: -4 }, { x: 6, z: -4 }], speed: 4.2 },
       { type: 'wolf', patrol: [{ x: 0, z: 8 }, { x: 8, z: 0 }, { x: 0, z: -8 }, { x: -8, z: 0 }], speed: 3.9 }
     ],
     flowerCount: 30,
@@ -1225,193 +1225,94 @@ function createBabies(lvl) {
 // --- FOX PREDATOR ---
 function createFoxMesh() {
   const group = new THREE.Group();
-  const orange = 0xD4652A; // realistic red-fox orange
-  const darkOrange = 0xB5521F;
-  const cream = 0xF5DEB3;
-  const black = 0x1A1A1A;
 
-  // Torso — slender, slightly arched back like real fox
-  const torsoGeo = new THREE.SphereGeometry(0.42, 14, 10);
-  torsoGeo.scale(0.85, 0.72, 1.5);
-  const torsoMat = new THREE.MeshLambertMaterial({ color: orange });
-  const torso = new THREE.Mesh(torsoGeo, torsoMat);
-  torso.position.set(0, 0.42, 0);
-  torso.castShadow = true;
-  group.add(torso);
+  // Body
+  const bodyGeo = new THREE.SphereGeometry(0.45, 10, 8);
+  bodyGeo.scale(1, 0.7, 1.4);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.35;
+  body.castShadow = true;
+  group.add(body);
 
-  // White chest/belly — distinctive fox marking
-  const bellyGeo = new THREE.SphereGeometry(0.32, 12, 8);
-  bellyGeo.scale(0.65, 0.5, 1.1);
-  const bellyMat = new THREE.MeshLambertMaterial({ color: cream });
-  const belly = new THREE.Mesh(bellyGeo, bellyMat);
-  belly.position.set(0, 0.3, 0.1);
-  group.add(belly);
-
-  // Shoulder hump — foxes have a slight shoulder arch
-  const shoulderGeo = new THREE.SphereGeometry(0.22, 10, 8);
-  const shoulderMat = new THREE.MeshLambertMaterial({ color: darkOrange });
-  const shoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
-  shoulder.position.set(0, 0.52, 0.2);
-  shoulder.scale.set(0.9, 0.7, 0.9);
-  group.add(shoulder);
-
-  // Head — narrower, more refined than wolf
-  const headGeo = new THREE.SphereGeometry(0.2, 12, 10);
-  headGeo.scale(0.95, 0.85, 1.15);
-  const headMat = new THREE.MeshLambertMaterial({ color: orange });
+  // Head
+  const headGeo = new THREE.SphereGeometry(0.22, 8, 6);
+  headGeo.scale(1, 0.9, 1.2);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
   const head = new THREE.Mesh(headGeo, headMat);
-  head.position.set(0, 0.55, 0.55);
+  head.position.set(0, 0.5, 0.5);
   head.castShadow = true;
   group.add(head);
 
-  // White cheek patches
-  const cheekGeo = new THREE.SphereGeometry(0.1, 8, 6);
-  const cheekMat = new THREE.MeshLambertMaterial({ color: cream });
-  const cheekL = new THREE.Mesh(cheekGeo, cheekMat);
-  cheekL.position.set(-0.12, 0.5, 0.62);
-  cheekL.scale.set(0.8, 0.7, 0.6);
-  group.add(cheekL);
-  const cheekR = new THREE.Mesh(cheekGeo.clone(), cheekMat);
-  cheekR.position.set(0.12, 0.5, 0.62);
-  cheekR.scale.set(0.8, 0.7, 0.6);
-  group.add(cheekR);
-
-  // Snout — longer and more tapered, fox-like
-  const snoutGeo = new THREE.ConeGeometry(0.07, 0.3, 8);
-  const snoutMat = new THREE.MeshLambertMaterial({ color: orange });
+  // Snout
+  const snoutGeo = new THREE.ConeGeometry(0.08, 0.25, 6);
+  const snoutMat = new THREE.MeshLambertMaterial({ color: 0xDD7733 });
   const snout = new THREE.Mesh(snoutGeo, snoutMat);
   snout.rotation.x = -Math.PI / 2;
-  snout.position.set(0, 0.48, 0.78);
+  snout.position.set(0, 0.45, 0.72);
   group.add(snout);
 
-  // White snout underside
-  const snoutWhiteGeo = new THREE.ConeGeometry(0.05, 0.22, 6);
-  const snoutWhiteMat = new THREE.MeshLambertMaterial({ color: cream });
-  const snoutWhite = new THREE.Mesh(snoutWhiteGeo, snoutWhiteMat);
-  snoutWhite.rotation.x = -Math.PI / 2;
-  snoutWhite.position.set(0, 0.45, 0.75);
-  group.add(snoutWhite);
-
-  // Nose — black, prominent
-  const noseGeo = new THREE.SphereGeometry(0.04, 8, 8);
-  const noseMat = new THREE.MeshLambertMaterial({ color: black });
+  // Nose
+  const noseGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const noseMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
   const nose = new THREE.Mesh(noseGeo, noseMat);
-  nose.position.set(0, 0.49, 0.92);
+  nose.position.set(0, 0.46, 0.83);
   group.add(nose);
 
-  // Eyes — amber/golden, almond-shaped (slightly slanted)
-  const eyeWhiteGeo = new THREE.SphereGeometry(0.045, 8, 8);
-  const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xFFBB00 });
-  const eyeL = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
-  eyeL.position.set(-0.1, 0.6, 0.64);
-  eyeL.scale.set(1, 0.75, 0.6);
+  // Eyes
+  const eyeGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFCC00 });
+  const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeL.position.set(-0.12, 0.56, 0.58);
   group.add(eyeL);
-  const eyeR = new THREE.Mesh(eyeWhiteGeo.clone(), eyeWhiteMat);
-  eyeR.position.set(0.1, 0.6, 0.64);
-  eyeR.scale.set(1, 0.75, 0.6);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.12, 0.56, 0.58);
   group.add(eyeR);
 
-  // Pupils — vertical slits
-  const pupilGeo = new THREE.SphereGeometry(0.022, 6, 6);
+  // Pupils
+  const pupilGeo = new THREE.SphereGeometry(0.02, 4, 4);
   const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
-  pupilL.position.set(-0.1, 0.6, 0.67);
-  pupilL.scale.set(0.6, 1.2, 0.5);
+  pupilL.position.set(-0.12, 0.56, 0.62);
   group.add(pupilL);
-  const pupilR = new THREE.Mesh(pupilGeo.clone(), pupilMat);
-  pupilR.position.set(0.1, 0.6, 0.67);
-  pupilR.scale.set(0.6, 1.2, 0.5);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.12, 0.56, 0.62);
   group.add(pupilR);
 
-  // Dark "tear line" markings from eyes to snout
-  const tearGeo = new THREE.CylinderGeometry(0.012, 0.008, 0.12, 4);
-  const tearMat = new THREE.MeshLambertMaterial({ color: 0x3D2010 });
-  const tearL = new THREE.Mesh(tearGeo, tearMat);
-  tearL.position.set(-0.08, 0.54, 0.68);
-  tearL.rotation.x = -0.6;
-  tearL.rotation.z = 0.2;
-  group.add(tearL);
-  const tearR = new THREE.Mesh(tearGeo.clone(), tearMat);
-  tearR.position.set(0.08, 0.54, 0.68);
-  tearR.rotation.x = -0.6;
-  tearR.rotation.z = -0.2;
-  group.add(tearR);
+  // Ears
+  const earGeo = new THREE.ConeGeometry(0.08, 0.2, 4);
+  const earMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
+  const earL = new THREE.Mesh(earGeo, earMat);
+  earL.position.set(-0.12, 0.72, 0.42);
+  earL.rotation.z = 0.15;
+  group.add(earL);
+  const earR = new THREE.Mesh(earGeo, earMat);
+  earR.position.set(0.12, 0.72, 0.42);
+  earR.rotation.z = -0.15;
+  group.add(earR);
 
-  // Ears — large, tall, triangular with black backs and lighter inner
-  const earGeo = new THREE.ConeGeometry(0.08, 0.28, 6);
-  const earOuterMat = new THREE.MeshLambertMaterial({ color: black });
-  const earL2 = new THREE.Mesh(earGeo, earOuterMat);
-  earL2.position.set(-0.1, 0.78, 0.48);
-  earL2.rotation.z = 0.12;
-  earL2.rotation.x = 0.1;
-  group.add(earL2);
-  const earR2 = new THREE.Mesh(earGeo.clone(), earOuterMat);
-  earR2.position.set(0.1, 0.78, 0.48);
-  earR2.rotation.z = -0.12;
-  earR2.rotation.x = 0.1;
-  group.add(earR2);
-
-  // Inner ear (lighter fur)
-  const innerEarGeo = new THREE.ConeGeometry(0.05, 0.2, 5);
-  const innerEarMat = new THREE.MeshLambertMaterial({ color: 0xE8C8A0 });
-  const innerL = new THREE.Mesh(innerEarGeo, innerEarMat);
-  innerL.position.set(-0.1, 0.77, 0.5);
-  innerL.rotation.z = 0.12;
-  innerL.rotation.x = 0.1;
-  group.add(innerL);
-  const innerR = new THREE.Mesh(innerEarGeo.clone(), innerEarMat);
-  innerR.position.set(0.1, 0.77, 0.5);
-  innerR.rotation.z = -0.12;
-  innerR.rotation.x = 0.1;
-  group.add(innerR);
-
-  // Legs — black "stockings" like a real fox
-  const legGeo = new THREE.CylinderGeometry(0.035, 0.03, 0.35, 8);
-  const legMat = new THREE.MeshLambertMaterial({ color: 0x1A1A1A });
-  const legPositions = [[-0.14, 0.17, 0.25], [0.14, 0.17, 0.25], [-0.14, 0.17, -0.3], [0.14, 0.17, -0.3]];
-  legPositions.forEach(p => {
+  // Legs
+  const legGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.25, 6);
+  const legMat = new THREE.MeshLambertMaterial({ color: 0x993300 });
+  [[-0.15, 0.12, 0.2], [0.15, 0.12, 0.2], [-0.15, 0.12, -0.25], [0.15, 0.12, -0.25]].forEach(p => {
     const leg = new THREE.Mesh(legGeo, legMat);
     leg.position.set(p[0], p[1], p[2]);
-    leg.castShadow = true;
     group.add(leg);
   });
 
-  // Paws — small, compact
-  const pawGeo = new THREE.SphereGeometry(0.04, 6, 6);
-  pawGeo.scale(1.2, 0.5, 1.4);
-  const pawMat = new THREE.MeshLambertMaterial({ color: 0x1A1A1A });
-  legPositions.forEach(p => {
-    const paw = new THREE.Mesh(pawGeo.clone(), pawMat);
-    paw.position.set(p[0], 0.02, p[2] + 0.02);
-    group.add(paw);
-  });
-
-  // Tail — large, bushy, sweeping with white tip
-  const tailGeo = new THREE.SphereGeometry(0.2, 10, 8);
-  tailGeo.scale(0.55, 0.55, 2.0);
-  const tailMat = new THREE.MeshLambertMaterial({ color: orange });
+  // Tail (bushy)
+  const tailGeo = new THREE.SphereGeometry(0.18, 8, 6);
+  tailGeo.scale(0.6, 0.6, 1.5);
+  const tailMat = new THREE.MeshLambertMaterial({ color: 0xCC5500 });
   const tail = new THREE.Mesh(tailGeo, tailMat);
-  tail.position.set(0, 0.38, -0.7);
-  tail.rotation.x = 0.2;
-  tail.castShadow = true;
+  tail.position.set(0, 0.35, -0.65);
   group.add(tail);
 
-  // Tail mid-section — darker
-  const tailMidGeo = new THREE.SphereGeometry(0.14, 8, 6);
-  tailMidGeo.scale(0.5, 0.5, 1.2);
-  const tailMidMat = new THREE.MeshLambertMaterial({ color: darkOrange });
-  const tailMid = new THREE.Mesh(tailMidGeo, tailMidMat);
-  tailMid.position.set(0, 0.36, -0.85);
-  tailMid.rotation.x = 0.25;
-  group.add(tailMid);
-
   // White tail tip
-  const tipGeo = new THREE.SphereGeometry(0.1, 8, 6);
-  tipGeo.scale(0.7, 0.7, 1.0);
+  const tipGeo = new THREE.SphereGeometry(0.1, 6, 6);
   const tipMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
   const tip = new THREE.Mesh(tipGeo, tipMat);
-  tip.position.set(0, 0.34, -1.0);
-  tip.rotation.x = 0.3;
+  tip.position.set(0, 0.35, -0.82);
   group.add(tip);
 
   return group;
@@ -1419,185 +1320,88 @@ function createFoxMesh() {
 
 function createWolfMesh() {
   const group = new THREE.Group();
-  const grayDark = 0x505558;
-  const grayMed = 0x6B7075;
-  const grayLight = 0x8A9098;
-  const cream = 0xC8BFB0;
-  const black = 0x1A1A1A;
 
-  // Main body — large, muscular, deep-chested
-  const bodyGeo = new THREE.SphereGeometry(0.5, 14, 10);
-  bodyGeo.scale(1.0, 0.8, 2.0);
-  const bodyMat = new THREE.MeshLambertMaterial({ color: grayDark });
+  // Body - elongated (1.5x longer)
+  const bodyGeo = new THREE.SphereGeometry(0.45, 10, 8);
+  bodyGeo.scale(1, 0.7, 2.1);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.set(0, 0.48, 0);
+  body.position.y = 0.35;
   body.castShadow = true;
   group.add(body);
 
-  // Lighter fur on sides/flanks — gray wolves have grizzled coat
-  const flankGeo = new THREE.SphereGeometry(0.46, 12, 8);
-  flankGeo.scale(0.95, 0.65, 1.8);
-  const flankMat = new THREE.MeshLambertMaterial({ color: grayMed });
-  const flank = new THREE.Mesh(flankGeo, flankMat);
-  flank.position.set(0, 0.5, 0.05);
-  group.add(flank);
-
-  // Belly — lighter underside
-  const bellyGeo = new THREE.SphereGeometry(0.35, 10, 8);
-  bellyGeo.scale(0.7, 0.45, 1.6);
-  const bellyMat = new THREE.MeshLambertMaterial({ color: cream });
-  const belly = new THREE.Mesh(bellyGeo, bellyMat);
-  belly.position.set(0, 0.35, 0.05);
-  group.add(belly);
-
-  // Thick neck/chest ruff — wolves have prominent neck fur
-  const ruffGeo = new THREE.SphereGeometry(0.32, 12, 10);
-  ruffGeo.scale(1.1, 1.0, 1.0);
-  const ruffMat = new THREE.MeshLambertMaterial({ color: grayLight });
-  const ruff = new THREE.Mesh(ruffGeo, ruffMat);
-  ruff.position.set(0, 0.55, 0.55);
-  ruff.castShadow = true;
-  group.add(ruff);
-
-  // Head — broad, powerful
-  const headGeo = new THREE.SphereGeometry(0.24, 12, 10);
-  headGeo.scale(1.05, 0.9, 1.15);
-  const headMat = new THREE.MeshLambertMaterial({ color: grayMed });
+  // Head
+  const headGeo = new THREE.SphereGeometry(0.22, 8, 6);
+  headGeo.scale(1, 0.9, 1.2);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
   const head = new THREE.Mesh(headGeo, headMat);
-  head.position.set(0, 0.6, 0.78);
+  head.position.set(0, 0.5, 0.7);
   head.castShadow = true;
   group.add(head);
 
-  // Brow ridge — wolves have a pronounced brow
-  const browGeo = new THREE.SphereGeometry(0.12, 8, 6);
-  browGeo.scale(1.8, 0.5, 0.8);
-  const browMat = new THREE.MeshLambertMaterial({ color: grayDark });
-  const brow = new THREE.Mesh(browGeo, browMat);
-  brow.position.set(0, 0.68, 0.82);
-  group.add(brow);
-
-  // Lighter muzzle area
-  const muzzleBaseGeo = new THREE.SphereGeometry(0.12, 8, 6);
-  muzzleBaseGeo.scale(0.9, 0.7, 1.0);
-  const muzzleMat = new THREE.MeshLambertMaterial({ color: cream });
-  const muzzleBase = new THREE.Mesh(muzzleBaseGeo, muzzleMat);
-  muzzleBase.position.set(0, 0.54, 0.88);
-  group.add(muzzleBase);
-
-  // Snout — broad, powerful
-  const snoutGeo = new THREE.ConeGeometry(0.09, 0.28, 8);
-  const snoutMat = new THREE.MeshLambertMaterial({ color: grayMed });
+  // Snout
+  const snoutGeo = new THREE.ConeGeometry(0.08, 0.25, 6);
+  const snoutMat = new THREE.MeshLambertMaterial({ color: 0x5C5C5C });
   const snout = new THREE.Mesh(snoutGeo, snoutMat);
   snout.rotation.x = -Math.PI / 2;
-  snout.position.set(0, 0.54, 1.0);
+  snout.position.set(0, 0.45, 0.92);
   group.add(snout);
 
-  // Nose — large, black
-  const noseGeo = new THREE.SphereGeometry(0.05, 8, 8);
-  noseGeo.scale(1.2, 0.8, 0.8);
-  const noseMat = new THREE.MeshLambertMaterial({ color: black });
+  // Nose
+  const noseGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const noseMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
   const nose = new THREE.Mesh(noseGeo, noseMat);
-  nose.position.set(0, 0.55, 1.12);
+  nose.position.set(0, 0.46, 1.03);
   group.add(nose);
 
-  // Eyes — intense yellow/amber, forward-facing
-  const eyeGeo = new THREE.SphereGeometry(0.042, 8, 8);
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xE8B828 });
+  // Eyes
+  const eyeGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFDD00 });
   const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-  eyeL.position.set(-0.12, 0.64, 0.88);
-  eyeL.scale.set(1, 0.8, 0.6);
+  eyeL.position.set(-0.12, 0.56, 0.78);
   group.add(eyeL);
-  const eyeR = new THREE.Mesh(eyeGeo.clone(), eyeMat);
-  eyeR.position.set(0.12, 0.64, 0.88);
-  eyeR.scale.set(1, 0.8, 0.6);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.12, 0.56, 0.78);
   group.add(eyeR);
 
-  // Pupils — round
-  const pupilGeo = new THREE.SphereGeometry(0.022, 6, 6);
+  // Pupils
+  const pupilGeo = new THREE.SphereGeometry(0.02, 4, 4);
   const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
-  pupilL.position.set(-0.12, 0.64, 0.91);
+  pupilL.position.set(-0.12, 0.56, 0.82);
   group.add(pupilL);
-  const pupilR = new THREE.Mesh(pupilGeo.clone(), pupilMat);
-  pupilR.position.set(0.12, 0.64, 0.91);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.12, 0.56, 0.82);
   group.add(pupilR);
 
-  // Ears — smaller relative to head than fox, rounded triangles
-  const earGeo = new THREE.ConeGeometry(0.07, 0.22, 6);
-  const earMat = new THREE.MeshLambertMaterial({ color: grayDark });
+  // Ears - taller, thinner
+  const earGeo = new THREE.ConeGeometry(0.06, 0.28, 4);
+  const earMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
   const earL = new THREE.Mesh(earGeo, earMat);
-  earL.position.set(-0.13, 0.82, 0.72);
-  earL.rotation.z = 0.2;
-  earL.rotation.x = 0.15;
+  earL.position.set(-0.12, 0.76, 0.62);
+  earL.rotation.z = 0.15;
   group.add(earL);
-  const earR = new THREE.Mesh(earGeo.clone(), earMat);
-  earR.position.set(0.13, 0.82, 0.72);
-  earR.rotation.z = -0.2;
-  earR.rotation.x = 0.15;
+  const earR = new THREE.Mesh(earGeo, earMat);
+  earR.position.set(0.12, 0.76, 0.62);
+  earR.rotation.z = -0.15;
   group.add(earR);
 
-  // Inner ears — lighter
-  const innerEarGeo = new THREE.ConeGeometry(0.04, 0.14, 5);
-  const innerEarMat = new THREE.MeshLambertMaterial({ color: 0xBBA898 });
-  const iEarL = new THREE.Mesh(innerEarGeo, innerEarMat);
-  iEarL.position.set(-0.13, 0.81, 0.73);
-  iEarL.rotation.z = 0.2;
-  iEarL.rotation.x = 0.15;
-  group.add(iEarL);
-  const iEarR = new THREE.Mesh(innerEarGeo.clone(), innerEarMat);
-  iEarR.position.set(0.13, 0.81, 0.73);
-  iEarR.rotation.z = -0.2;
-  iEarR.rotation.x = 0.15;
-  group.add(iEarR);
-
-  // Legs — long, powerful, lighter lower portions
-  const upperLegGeo = new THREE.CylinderGeometry(0.055, 0.045, 0.22, 8);
-  const upperLegMat = new THREE.MeshLambertMaterial({ color: grayDark });
-  const lowerLegGeo = new THREE.CylinderGeometry(0.04, 0.035, 0.25, 8);
-  const lowerLegMat = new THREE.MeshLambertMaterial({ color: grayLight });
-  const legPositions = [[-0.17, 0, 0.35], [0.17, 0, 0.35], [-0.17, 0, -0.45], [0.17, 0, -0.45]];
-  legPositions.forEach(p => {
-    const upper = new THREE.Mesh(upperLegGeo, upperLegMat);
-    upper.position.set(p[0], 0.28, p[2]);
-    upper.castShadow = true;
-    group.add(upper);
-    const lower = new THREE.Mesh(lowerLegGeo, lowerLegMat);
-    lower.position.set(p[0], 0.12, p[2]);
-    lower.castShadow = true;
-    group.add(lower);
+  // Legs - taller, thinner
+  const legGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.32, 6);
+  const legMat = new THREE.MeshLambertMaterial({ color: 0x3A3A3A });
+  [[-0.15, 0.16, 0.3], [0.15, 0.16, 0.3], [-0.15, 0.16, -0.45], [0.15, 0.16, -0.45]].forEach(p => {
+    const leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.set(p[0], p[1], p[2]);
+    group.add(leg);
   });
 
-  // Paws — large
-  const pawGeo = new THREE.SphereGeometry(0.05, 8, 6);
-  pawGeo.scale(1.2, 0.5, 1.5);
-  const pawMat = new THREE.MeshLambertMaterial({ color: grayDark });
-  legPositions.forEach(p => {
-    const paw = new THREE.Mesh(pawGeo.clone(), pawMat);
-    paw.position.set(p[0], 0.02, p[2] + 0.02);
-    group.add(paw);
-  });
-
-  // Tail — bushy, held lower than fox, dark-tipped
-  const tailGeo = new THREE.SphereGeometry(0.16, 10, 8);
-  tailGeo.scale(0.55, 0.55, 2.2);
-  const tailMat = new THREE.MeshLambertMaterial({ color: grayDark });
+  // Tail - longer and straighter
+  const tailGeo = new THREE.SphereGeometry(0.15, 8, 6);
+  tailGeo.scale(0.5, 0.5, 1.8);
+  const tailMat = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
   const tail = new THREE.Mesh(tailGeo, tailMat);
   tail.position.set(0, 0.35, -0.95);
-  tail.rotation.x = 0.35;
-  tail.castShadow = true;
   group.add(tail);
-
-  // Black tail tip
-  const tailTipGeo = new THREE.SphereGeometry(0.08, 6, 6);
-  tailTipGeo.scale(0.6, 0.6, 1.0);
-  const tailTipMat = new THREE.MeshLambertMaterial({ color: black });
-  const tailTip = new THREE.Mesh(tailTipGeo, tailTipMat);
-  tailTip.position.set(0, 0.3, -1.2);
-  tailTip.rotation.x = 0.4;
-  group.add(tailTip);
-
-  // Scale up slightly — wolves are bigger than foxes
-  group.scale.set(1.1, 1.1, 1.1);
 
   return group;
 }
@@ -1692,361 +1496,159 @@ function createCoyoteMesh() {
 
 function createEagleMesh() {
   const group = new THREE.Group();
-  const darkBrown = 0x3D2B1F;
-  const medBrown = 0x5C4033;
-  const white = 0xFAFAFA;
-  const yellow = 0xF0C030;
 
-  // Body — streamlined, powerful chest
-  const bodyGeo = new THREE.SphereGeometry(0.38, 14, 10);
-  bodyGeo.scale(0.9, 0.75, 1.3);
-  const bodyMat = new THREE.MeshLambertMaterial({ color: darkBrown });
+  // Body - compact sphere
+  const bodyGeo = new THREE.SphereGeometry(0.35, 10, 8);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x8B6F47 });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.set(0, 0.38, 0);
+  body.position.y = 0.35;
   body.castShadow = true;
   group.add(body);
 
-  // Chest — lighter brown, prominent
-  const chestGeo = new THREE.SphereGeometry(0.25, 10, 8);
-  chestGeo.scale(0.8, 0.7, 0.9);
-  const chestMat = new THREE.MeshLambertMaterial({ color: medBrown });
-  const chest = new THREE.Mesh(chestGeo, chestMat);
-  chest.position.set(0, 0.4, 0.2);
-  group.add(chest);
-
-  // Neck — white (bald eagle distinction)
-  const neckGeo = new THREE.SphereGeometry(0.14, 10, 8);
-  neckGeo.scale(0.9, 1.0, 0.9);
-  const neckMat = new THREE.MeshLambertMaterial({ color: white });
-  const neck = new THREE.Mesh(neckGeo, neckMat);
-  neck.position.set(0, 0.48, 0.32);
-  group.add(neck);
-
-  // Head — iconic white bald eagle head
-  const headGeo = new THREE.SphereGeometry(0.18, 12, 10);
-  headGeo.scale(1.0, 0.9, 1.1);
-  const headMat = new THREE.MeshLambertMaterial({ color: white });
+  // Head - smaller sphere
+  const headGeo = new THREE.SphereGeometry(0.18, 8, 6);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0x8B6F47 });
   const head = new THREE.Mesh(headGeo, headMat);
-  head.position.set(0, 0.52, 0.4);
+  head.position.set(0, 0.42, 0.35);
   head.castShadow = true;
   group.add(head);
 
-  // Fierce brow ridge
-  const browGeo = new THREE.SphereGeometry(0.1, 8, 6);
-  browGeo.scale(1.6, 0.4, 0.7);
-  const browMat = new THREE.MeshLambertMaterial({ color: white });
-  const brow = new THREE.Mesh(browGeo, browMat);
-  brow.position.set(0, 0.57, 0.45);
-  group.add(brow);
+  // Beak - hooked cone
+  const beakGeo = new THREE.ConeGeometry(0.06, 0.2, 6);
+  const beakMat = new THREE.MeshLambertMaterial({ color: 0xDD9944 });
+  const beak = new THREE.Mesh(beakGeo, beakMat);
+  beak.rotation.x = -Math.PI / 2;
+  beak.rotation.z = Math.PI * 0.15;
+  beak.position.set(0, 0.38, 0.52);
+  group.add(beak);
 
-  // Beak — large, hooked, bright yellow
-  const beakUpperGeo = new THREE.ConeGeometry(0.055, 0.22, 8);
-  const beakMat = new THREE.MeshLambertMaterial({ color: yellow });
-  const beakUpper = new THREE.Mesh(beakUpperGeo, beakMat);
-  beakUpper.rotation.x = -Math.PI / 2.2;
-  beakUpper.position.set(0, 0.48, 0.58);
-  group.add(beakUpper);
-
-  // Beak hook — the downward curve
-  const hookGeo = new THREE.SphereGeometry(0.03, 6, 6);
-  hookGeo.scale(0.8, 1.2, 1.0);
-  const hookMat = new THREE.MeshLambertMaterial({ color: 0xD4A820 });
-  const hook = new THREE.Mesh(hookGeo, hookMat);
-  hook.position.set(0, 0.44, 0.65);
-  group.add(hook);
-
-  // Cere (fleshy part at base of beak)
-  const cereGeo = new THREE.SphereGeometry(0.04, 6, 6);
-  const cereMat = new THREE.MeshLambertMaterial({ color: yellow });
-  const cere = new THREE.Mesh(cereGeo, cereMat);
-  cere.position.set(0, 0.52, 0.55);
-  cere.scale.set(1, 0.7, 0.8);
-  group.add(cere);
-
-  // Eyes — intense, deep-set, with brow shadow
-  const eyeGeo = new THREE.SphereGeometry(0.035, 8, 8);
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xF0E040 });
+  // Eyes - golden
+  const eyeGeo = new THREE.SphereGeometry(0.035, 6, 6);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFDD00 });
   const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-  eyeL.position.set(-0.1, 0.54, 0.48);
-  eyeL.scale.set(0.9, 0.8, 0.6);
+  eyeL.position.set(-0.1, 0.46, 0.42);
   group.add(eyeL);
-  const eyeR = new THREE.Mesh(eyeGeo.clone(), eyeMat);
-  eyeR.position.set(0.1, 0.54, 0.48);
-  eyeR.scale.set(0.9, 0.8, 0.6);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.1, 0.46, 0.42);
   group.add(eyeR);
 
   // Pupils
-  const pupilGeo = new THREE.SphereGeometry(0.018, 6, 6);
+  const pupilGeo = new THREE.SphereGeometry(0.015, 4, 4);
   const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
-  pupilL.position.set(-0.1, 0.54, 0.5);
+  pupilL.position.set(-0.1, 0.46, 0.455);
   group.add(pupilL);
-  const pupilR = new THREE.Mesh(pupilGeo.clone(), pupilMat);
-  pupilR.position.set(0.1, 0.54, 0.5);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.1, 0.46, 0.455);
   group.add(pupilR);
 
-  // Wings — wide, spread, with layered feather sections
-  // Inner wing
-  const innerWingGeo = new THREE.SphereGeometry(0.35, 10, 8);
-  innerWingGeo.scale(0.15, 1.2, 0.7);
-  const innerWingMat = new THREE.MeshLambertMaterial({ color: darkBrown });
-  const innerWingL = new THREE.Mesh(innerWingGeo, innerWingMat);
-  innerWingL.position.set(-0.3, 0.4, 0.05);
-  innerWingL.rotation.z = 0.15;
-  innerWingL.castShadow = true;
-  group.add(innerWingL);
-  const innerWingR = new THREE.Mesh(innerWingGeo.clone(), innerWingMat);
-  innerWingR.position.set(0.3, 0.4, 0.05);
-  innerWingR.rotation.z = -0.15;
-  innerWingR.castShadow = true;
-  group.add(innerWingR);
+  // Wings - large scaled spheres
+  const wingGeo = new THREE.SphereGeometry(0.3, 8, 6);
+  wingGeo.scale(0.4, 1.0, 0.6);
+  const wingMat = new THREE.MeshLambertMaterial({ color: 0x6B5638 });
+  const wingL = new THREE.Mesh(wingGeo, wingMat);
+  wingL.position.set(-0.35, 0.35, 0.25);
+  group.add(wingL);
+  const wingR = new THREE.Mesh(wingGeo, wingMat);
+  wingR.position.set(0.35, 0.35, 0.25);
+  group.add(wingR);
 
-  // Outer wing (primaries) — slightly lighter
-  const outerWingGeo = new THREE.SphereGeometry(0.28, 8, 6);
-  outerWingGeo.scale(0.12, 1.1, 0.55);
-  const outerWingMat = new THREE.MeshLambertMaterial({ color: medBrown });
-  const outerWingL = new THREE.Mesh(outerWingGeo, outerWingMat);
-  outerWingL.position.set(-0.55, 0.38, -0.05);
-  outerWingL.rotation.z = 0.25;
-  group.add(outerWingL);
-  const outerWingR = new THREE.Mesh(outerWingGeo.clone(), outerWingMat);
-  outerWingR.position.set(0.55, 0.38, -0.05);
-  outerWingR.rotation.z = -0.25;
-  group.add(outerWingR);
-
-  // Tail feathers — white fan (bald eagle)
-  const tailGeo = new THREE.SphereGeometry(0.18, 10, 8);
-  tailGeo.scale(0.6, 0.25, 1.4);
-  const tailMat = new THREE.MeshLambertMaterial({ color: white });
-  const tail = new THREE.Mesh(tailGeo, tailMat);
-  tail.position.set(0, 0.32, -0.52);
-  tail.rotation.x = 0.15;
-  group.add(tail);
-
-  // Tail feather edges — darker
-  const tailEdgeGeo = new THREE.SphereGeometry(0.12, 8, 6);
-  tailEdgeGeo.scale(0.7, 0.2, 1.0);
-  const tailEdgeMat = new THREE.MeshLambertMaterial({ color: 0xE8E0D8 });
-  const tailEdge = new THREE.Mesh(tailEdgeGeo, tailEdgeMat);
-  tailEdge.position.set(0, 0.31, -0.62);
-  tailEdge.rotation.x = 0.15;
-  group.add(tailEdge);
-
-  // Legs/Talons — yellow, powerful, feathered upper
-  const legFeatherGeo = new THREE.SphereGeometry(0.06, 6, 6);
-  legFeatherGeo.scale(0.8, 1.2, 0.8);
-  const legFeatherMat = new THREE.MeshLambertMaterial({ color: darkBrown });
-  [[-0.1, 0.2, 0.15], [0.1, 0.2, 0.15]].forEach(p => {
-    const lf = new THREE.Mesh(legFeatherGeo.clone(), legFeatherMat);
-    lf.position.set(p[0], p[1], p[2]);
-    group.add(lf);
-  });
-
-  // Lower legs — yellow scales
-  const lowerLegGeo = new THREE.CylinderGeometry(0.025, 0.02, 0.15, 6);
-  const lowerLegMat = new THREE.MeshLambertMaterial({ color: yellow });
-  [[-0.1, 0.1, 0.15], [0.1, 0.1, 0.15]].forEach(p => {
-    const ll = new THREE.Mesh(lowerLegGeo, lowerLegMat);
-    ll.position.set(p[0], p[1], p[2]);
-    group.add(ll);
-  });
-
-  // Talons — dark, curved
-  const talonGeo = new THREE.ConeGeometry(0.025, 0.1, 5);
-  const talonMat = new THREE.MeshLambertMaterial({ color: 0x1A1A1A });
-  [[-0.1, 0.02, 0.18], [0.1, 0.02, 0.18], [-0.1, 0.02, 0.12], [0.1, 0.02, 0.12]].forEach(p => {
+  // Talons - small cones below body
+  const talonGeo = new THREE.ConeGeometry(0.03, 0.15, 4);
+  const talonMat = new THREE.MeshLambertMaterial({ color: 0xDDA000 });
+  [[-0.1, 0.05, 0.25], [0.1, 0.05, 0.25]].forEach(p => {
     const talon = new THREE.Mesh(talonGeo, talonMat);
     talon.position.set(p[0], p[1], p[2]);
     group.add(talon);
   });
 
-  group.scale.set(0.95, 0.95, 0.95);
+  // Apply 0.9x scale to entire group
+  group.scale.set(0.9, 0.9, 0.9);
+
   return group;
 }
 
 function createSnowyOwlMesh() {
   const group = new THREE.Group();
-  const pureWhite = 0xFCFCFC;
-  const offWhite = 0xF0EDE8;
-  const speckle = 0xA8A0A0;
-  const darkSpeckle = 0x686060;
 
-  // Body — round, stocky owl shape
-  const bodyGeo = new THREE.SphereGeometry(0.42, 14, 12);
-  bodyGeo.scale(0.9, 1.1, 0.85);
-  const bodyMat = new THREE.MeshLambertMaterial({ color: pureWhite });
+  // Body - rounder and more compact than eagle
+  const bodyGeo = new THREE.SphereGeometry(0.4, 12, 10);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xF5F5F5 });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.set(0, 0.42, 0);
+  body.position.y = 0.4;
+  body.scale.set(1.0, 1.15, 0.85); // Slightly taller, more compact front-to-back
   body.castShadow = true;
   group.add(body);
 
-  // Speckled markings on body — dark bars across white plumage
-  const speckleGeo = new THREE.SphereGeometry(0.06, 6, 4);
-  const speckleMat = new THREE.MeshLambertMaterial({ color: speckle });
-  const specklePositions = [
-    [-0.2, 0.5, 0.15], [0.2, 0.5, 0.15], [-0.15, 0.35, 0.2], [0.15, 0.35, 0.2],
-    [-0.25, 0.45, -0.05], [0.25, 0.45, -0.05], [0.0, 0.55, -0.15], [-0.1, 0.3, -0.1],
-    [0.1, 0.3, -0.1], [-0.2, 0.5, -0.2], [0.2, 0.5, -0.2],
-  ];
-  specklePositions.forEach(p => {
-    const s = new THREE.Mesh(speckleGeo.clone(), speckleMat);
-    s.position.set(p[0], p[1], p[2]);
-    s.scale.set(0.8 + Math.random() * 0.5, 0.3, 0.8 + Math.random() * 0.4);
-    group.add(s);
-  });
-
-  // Head — large, round, flat-faced (owl facial disc)
-  const headGeo = new THREE.SphereGeometry(0.24, 14, 12);
-  headGeo.scale(1.0, 0.95, 0.9);
-  const headMat = new THREE.MeshLambertMaterial({ color: pureWhite });
+  // Head - larger and rounder for owl appearance
+  const headGeo = new THREE.SphereGeometry(0.22, 10, 8);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0xFFFAFA });
   const head = new THREE.Mesh(headGeo, headMat);
-  head.position.set(0, 0.58, 0.28);
+  head.position.set(0, 0.48, 0.3);
   head.castShadow = true;
   group.add(head);
 
-  // Facial disc — the distinctive flat owl face ring
-  const discGeo = new THREE.TorusGeometry(0.18, 0.03, 8, 20);
-  const discMat = new THREE.MeshLambertMaterial({ color: offWhite });
-  const disc = new THREE.Mesh(discGeo, discMat);
-  disc.position.set(0, 0.58, 0.38);
-  disc.rotation.y = Math.PI / 2;
-  disc.scale.set(0.5, 1, 1);
-  group.add(disc);
-
-  // Inner facial disc — slightly darker
-  const innerDiscGeo = new THREE.SphereGeometry(0.17, 10, 8);
-  innerDiscGeo.scale(0.4, 0.9, 0.9);
-  const innerDiscMat = new THREE.MeshLambertMaterial({ color: 0xEAE5E0 });
-  const innerDisc = new THREE.Mesh(innerDiscGeo, innerDiscMat);
-  innerDisc.position.set(0, 0.58, 0.36);
-  group.add(innerDisc);
-
-  // Eye sockets — dark ring around each eye
-  const socketGeo = new THREE.TorusGeometry(0.055, 0.015, 6, 12);
-  const socketMat = new THREE.MeshLambertMaterial({ color: darkSpeckle });
-  const socketL = new THREE.Mesh(socketGeo, socketMat);
-  socketL.position.set(-0.1, 0.6, 0.4);
-  group.add(socketL);
-  const socketR = new THREE.Mesh(socketGeo.clone(), socketMat);
-  socketR.position.set(0.1, 0.6, 0.4);
-  group.add(socketR);
-
-  // Eyes — large, round, bright yellow-orange (snowy owl signature)
-  const eyeGeo = new THREE.SphereGeometry(0.05, 10, 10);
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFAA00 });
+  // Large forward-facing eyes (characteristic of owls)
+  const eyeGeo = new THREE.SphereGeometry(0.048, 8, 8);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xFFB300 }); // Orange-yellow owl eyes
   const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-  eyeL.position.set(-0.1, 0.6, 0.42);
+  eyeL.position.set(-0.12, 0.52, 0.35);
   group.add(eyeL);
-  const eyeR = new THREE.Mesh(eyeGeo.clone(), eyeMat);
-  eyeR.position.set(0.1, 0.6, 0.42);
+  const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+  eyeR.position.set(0.12, 0.52, 0.35);
   group.add(eyeR);
 
-  // Pupils — large, black, round
-  const pupilGeo = new THREE.SphereGeometry(0.025, 8, 8);
+  // Pupils - black and prominent
+  const pupilGeo = new THREE.SphereGeometry(0.02, 4, 4);
   const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
-  pupilL.position.set(-0.1, 0.6, 0.46);
+  pupilL.position.set(-0.12, 0.52, 0.375);
   group.add(pupilL);
-  const pupilR = new THREE.Mesh(pupilGeo.clone(), pupilMat);
-  pupilR.position.set(0.1, 0.6, 0.46);
+  const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+  pupilR.position.set(0.12, 0.52, 0.375);
   group.add(pupilR);
 
-  // Beak — small, dark, mostly hidden by feathers
-  const beakGeo = new THREE.ConeGeometry(0.035, 0.1, 6);
-  const beakMat = new THREE.MeshLambertMaterial({ color: 0x2A2A2A });
+  // Beak - small hooked cone
+  const beakGeo = new THREE.ConeGeometry(0.05, 0.15, 6);
+  const beakMat = new THREE.MeshLambertMaterial({ color: 0xCC8800 });
   const beak = new THREE.Mesh(beakGeo, beakMat);
-  beak.rotation.x = -Math.PI / 2.3;
-  beak.position.set(0, 0.53, 0.48);
+  beak.rotation.x = -Math.PI / 2;
+  beak.position.set(0, 0.42, 0.45);
   group.add(beak);
 
-  // Feather tufts around beak
-  const tuftGeo = new THREE.SphereGeometry(0.04, 6, 6);
-  const tuftMat = new THREE.MeshLambertMaterial({ color: pureWhite });
-  [[-0.03, 0.55, 0.46], [0.03, 0.55, 0.46], [0, 0.51, 0.46]].forEach(p => {
-    const t = new THREE.Mesh(tuftGeo.clone(), tuftMat);
-    t.position.set(p[0], p[1], p[2]);
-    t.scale.set(1, 0.7, 0.7);
-    group.add(t);
-  });
+  // Wings - slightly smaller and more rounded than eagle for owl shape
+  const wingGeo = new THREE.SphereGeometry(0.32, 10, 8);
+  wingGeo.scale(0.35, 1.1, 0.55);
+  const wingMat = new THREE.MeshLambertMaterial({ color: 0xE8E8E8 });
+  const wingL = new THREE.Mesh(wingGeo, wingMat);
+  wingL.position.set(-0.4, 0.4, 0.2);
+  group.add(wingL);
+  const wingR = new THREE.Mesh(wingGeo, wingMat);
+  wingR.position.set(0.4, 0.4, 0.2);
+  group.add(wingR);
 
-  // Wings — broad, rounded, spread in flight
-  // Inner wing
-  const innerWingGeo = new THREE.SphereGeometry(0.35, 10, 8);
-  innerWingGeo.scale(0.15, 1.15, 0.65);
-  const innerWingMat = new THREE.MeshLambertMaterial({ color: pureWhite });
-  const innerWingL = new THREE.Mesh(innerWingGeo, innerWingMat);
-  innerWingL.position.set(-0.3, 0.42, 0.0);
-  innerWingL.rotation.z = 0.1;
-  innerWingL.castShadow = true;
-  group.add(innerWingL);
-  const innerWingR = new THREE.Mesh(innerWingGeo.clone(), innerWingMat);
-  innerWingR.position.set(0.3, 0.42, 0.0);
-  innerWingR.rotation.z = -0.1;
-  innerWingR.castShadow = true;
-  group.add(innerWingR);
-
-  // Outer wing — with dark barring
-  const outerWingGeo = new THREE.SphereGeometry(0.26, 8, 6);
-  outerWingGeo.scale(0.12, 1.0, 0.5);
-  const outerWingMat = new THREE.MeshLambertMaterial({ color: offWhite });
-  const outerWingL = new THREE.Mesh(outerWingGeo, outerWingMat);
-  outerWingL.position.set(-0.52, 0.4, -0.05);
-  outerWingL.rotation.z = 0.2;
-  group.add(outerWingL);
-  const outerWingR = new THREE.Mesh(outerWingGeo.clone(), outerWingMat);
-  outerWingR.position.set(0.52, 0.4, -0.05);
-  outerWingR.rotation.z = -0.2;
-  group.add(outerWingR);
-
-  // Wing tip dark markings
-  const wingTipGeo = new THREE.SphereGeometry(0.08, 6, 4);
-  const wingTipMat = new THREE.MeshLambertMaterial({ color: darkSpeckle });
-  [[-0.6, 0.38, -0.08], [0.6, 0.38, -0.08]].forEach(p => {
-    const wt = new THREE.Mesh(wingTipGeo.clone(), wingTipMat);
-    wt.position.set(p[0], p[1], p[2]);
-    wt.scale.set(0.5, 0.8, 0.6);
-    group.add(wt);
-  });
-
-  // Tail — short, white with dark barring
-  const tailGeo = new THREE.SphereGeometry(0.14, 8, 6);
-  tailGeo.scale(0.6, 0.2, 1.2);
-  const tailMat = new THREE.MeshLambertMaterial({ color: pureWhite });
-  const tail = new THREE.Mesh(tailGeo, tailMat);
-  tail.position.set(0, 0.32, -0.4);
-  tail.rotation.x = 0.2;
-  group.add(tail);
-
-  // Tail barring
-  const barGeo = new THREE.SphereGeometry(0.04, 4, 4);
-  const barMat = new THREE.MeshLambertMaterial({ color: speckle });
-  [[-0.04, 0.31, -0.48], [0.04, 0.31, -0.48], [0, 0.31, -0.44]].forEach(p => {
-    const bar = new THREE.Mesh(barGeo.clone(), barMat);
-    bar.position.set(p[0], p[1], p[2]);
-    bar.scale.set(1, 0.5, 0.8);
-    group.add(bar);
-  });
-
-  // Feathered legs — snowy owls have feathered feet
-  const legFeatherGeo = new THREE.SphereGeometry(0.06, 8, 6);
-  legFeatherGeo.scale(0.8, 1.5, 0.8);
-  const legFeatherMat = new THREE.MeshLambertMaterial({ color: pureWhite });
-  [[-0.1, 0.15, 0.12], [0.1, 0.15, 0.12]].forEach(p => {
-    const lf = new THREE.Mesh(legFeatherGeo.clone(), legFeatherMat);
-    lf.position.set(p[0], p[1], p[2]);
-    group.add(lf);
-  });
-
-  // Talons — dark, powerful
-  const talonGeo = new THREE.ConeGeometry(0.02, 0.08, 5);
-  const talonMat = new THREE.MeshLambertMaterial({ color: 0x1A1A1A });
-  [[-0.1, 0.03, 0.15], [0.1, 0.03, 0.15], [-0.1, 0.03, 0.09], [0.1, 0.03, 0.09]].forEach(p => {
+  // Talons - sharp cones
+  const talonGeo = new THREE.ConeGeometry(0.035, 0.18, 5);
+  const talonMat = new THREE.MeshLambertMaterial({ color: 0xDDAA00 });
+  [[-0.12, 0.02, 0.2], [0.12, 0.02, 0.2]].forEach(p => {
     const talon = new THREE.Mesh(talonGeo, talonMat);
     talon.position.set(p[0], p[1], p[2]);
     group.add(talon);
   });
 
+  // Ear tufts (characteristic of some owls) - small pyramids on head
+  const tufts = [[-0.18, 0.65, 0.3], [0.18, 0.65, 0.3]];
+  tufts.forEach(p => {
+    const tuftGeo = new THREE.ConeGeometry(0.08, 0.25, 4);
+    const tuftMat = new THREE.MeshLambertMaterial({ color: 0xE8E8E8 });
+    const tuft = new THREE.Mesh(tuftGeo, tuftMat);
+    tuft.position.set(p[0], p[1], p[2]);
+    group.add(tuft);
+  });
+
+  // Apply scale to entire group
   group.scale.set(0.95, 0.95, 0.95);
+
   return group;
 }
 
@@ -2412,40 +2014,19 @@ function buildLevelGrid(worldId) {
 
   const levelsInWorld = getLevelsForWorld(worldId);
   levelsInWorld.forEach(lvl => {
-    const levelIndex = LEVELS.findIndex(l => l.id === lvl.id);
-    const isLocked = levelIndex + 1 > saveData.unlockedLevel;
-
-    const btnWrapper = document.createElement('div');
-    btnWrapper.style.position = 'relative';
-    btnWrapper.style.display = 'inline-block';
-
     const btn = document.createElement('button');
-    btn.className = 'level-select-btn' + (isLocked ? ' locked' : '');
+    btn.className = 'level-select-btn';
 
     const starsText = saveData.stars[lvl.id] ? '⭐'.repeat(saveData.stars[lvl.id]) + '☆'.repeat(3 - saveData.stars[lvl.id]) : '☆☆☆';
     const displayName = getLevelDisplayName(lvl.id);
     btn.innerHTML = `${displayName}<br><span style="font-size:12px">${starsText}</span>`;
 
-    if (!isLocked) {
-      btn.addEventListener('click', () => {
-        document.getElementById('level-select-screen').style.display = 'none';
-        loadLevel(levelIndex);
-      });
-    } else {
-      // Add lock icon to locked level
-      const lockOverlay = document.createElement('div');
-      lockOverlay.style.position = 'absolute';
-      lockOverlay.style.top = '50%';
-      lockOverlay.style.left = '50%';
-      lockOverlay.style.transform = 'translate(-50%, -50%)';
-      lockOverlay.style.fontSize = '32px';
-      lockOverlay.style.pointerEvents = 'none';
-      lockOverlay.textContent = '🔒';
-      btnWrapper.appendChild(lockOverlay);
-    }
+    btn.addEventListener('click', () => {
+      document.getElementById('level-select-screen').style.display = 'none';
+      loadLevel(LEVELS.findIndex(l => l.id === lvl.id));
+    });
 
-    btnWrapper.appendChild(btn);
-    container.appendChild(btnWrapper);
+    container.appendChild(btn);
   });
 }
 
@@ -2711,26 +2292,13 @@ function updatePredators(delta) {
     }
     pred.position.y = getGroundHeight(nx, nz);
 
-    // Eagle-specific: swooping behavior when attacking
+    // Eagle-specific: add bobbing altitude behavior
     if (data.type === 'eagle') {
       const baseHeight = getGroundHeight(nx, nz);
-      let targetEagleHeight;
-
-      if (isChasing) {
-        // Swoop down when attacking — lower, more dangerous altitude
-        const swoopAmount = Math.sin(elapsedTime * 4) * 0.2;
-        targetEagleHeight = baseHeight + 1.2 + swoopAmount;
-      } else {
-        // Patrol altitude — high and bobbing gently
-        const bobOffset = Math.sin(elapsedTime * 2) * 0.3;
-        targetEagleHeight = baseHeight + 2.8 + bobOffset;
-      }
-
-      // Smooth lerp to target height
-      pred.position.y += (targetEagleHeight - pred.position.y) * 4 * delta;
-
-      // Constrain altitude between ground + 0.8 and ground + 3.5
-      pred.position.y = Math.max(baseHeight + 0.8, Math.min(baseHeight + 3.5, pred.position.y));
+      const bobOffset = Math.sin(elapsedTime * 2) * 0.3;
+      const eagleAltitude = baseHeight + 2.0 + bobOffset;
+      // Constrain altitude between ground + 2.0 and ground + 3.5
+      pred.position.y = Math.max(baseHeight + 2.0, Math.min(baseHeight + 3.5, eagleAltitude));
     }
 
     // Smooth rotation: lerp toward target
